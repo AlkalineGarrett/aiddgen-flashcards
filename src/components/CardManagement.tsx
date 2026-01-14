@@ -1,26 +1,41 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card } from '../types/card';
 import { useCardStorage } from '../utils/useStorage';
 import { createInitialCardState } from '../utils/fsrs';
-import { getCardStatus, getStatusColor, getStatusLabel, filterCardsByStatus, filterCardsByTag, searchCards } from '../utils/cardStatus';
+import { filterCardsByStatus, filterCardsByTag, searchCards } from '../utils/cardStatus';
 import { getAvailableTags } from '../utils/flashcardGenerator';
 import { calculateStatistics } from '../utils/statistics';
 import { CardList } from './CardList';
 import { CardDetail } from './CardDetail';
 import { Statistics } from './Statistics';
 import { Filters } from './Filters';
+import { DeckId, getDeckInfo } from '../utils/deckStorage';
 
 type View = 'list' | 'detail';
 
-export function CardManagement() {
-  const { cards, updateCard, removeCard, isLoading } = useCardStorage();
+interface CardManagementProps {
+  deckId: DeckId;
+}
+
+export function CardManagement({ deckId }: CardManagementProps) {
+  const { cards, updateCard, removeCard, isLoading } = useCardStorage(deckId);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [view, setView] = useState<View>('list');
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'learning' | 'review' | 'mastered'>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [searchText, setSearchText] = useState('');
 
-  const availableTags = useMemo(() => getAvailableTags(), []);
+  const deckInfo = useMemo(() => getDeckInfo(deckId), [deckId]);
+  const availableTags = useMemo(() => getAvailableTags(deckId), [deckId]);
+
+  // Reset filters and selection when deck changes
+  useEffect(() => {
+    setSelectedCardId(null);
+    setView('list');
+    setStatusFilter('all');
+    setTagFilter('all');
+    setSearchText('');
+  }, [deckId]);
 
   // Filter cards
   const filteredCards = useMemo(() => {
@@ -75,7 +90,12 @@ export function CardManagement() {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
       <div style={{ marginBottom: '2rem' }}>
-        <h2>Card Management</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <h2 style={{ margin: 0 }}>Card Management</h2>
+          <span style={{ fontSize: '0.875rem', color: '#666' }}>
+            ({deckInfo.name})
+          </span>
+        </div>
         <Statistics stats={statistics} />
       </div>
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Card, ReviewQuality } from '../types/card';
+import { ReviewQuality } from '../types/card';
 import { useCardStorage } from '../utils/useStorage';
 import { updateCardState } from '../utils/fsrs';
 import {
@@ -12,6 +12,7 @@ import { CardDisplay } from './CardDisplay';
 import { RatingButtons } from './RatingButtons';
 import { StudyStats } from './StudyStats';
 import { StudySettings } from './StudySettings';
+import { DeckId, getDeckInfo } from '../utils/deckStorage';
 
 interface StudySession {
   startTime: number;
@@ -19,12 +20,25 @@ interface StudySession {
   timeSpent: number; // in seconds
 }
 
-export function Study() {
-  const { cards, updateCard, isLoading } = useCardStorage();
+interface StudyProps {
+  deckId: DeckId;
+}
+
+export function Study({ deckId }: StudyProps) {
+  const { cards, updateCard, isLoading } = useCardStorage(deckId);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [showAnswer, setShowAnswer] = useState(false);
   const [session, setSession] = useState<StudySession | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  
+  const deckInfo = useMemo(() => getDeckInfo(deckId), [deckId]);
+
+  // Reset study state when deck changes
+  useEffect(() => {
+    setCurrentCardIndex(0);
+    setShowAnswer(false);
+    setSession(null);
+  }, [deckId]);
 
   // Build review queue with proper prioritization and daily limits
   const queue = useMemo(() => {
@@ -117,7 +131,7 @@ export function Study() {
     return (
       <div style={{ textAlign: 'center', padding: '2rem' }}>
         <h2>🎉 All Done!</h2>
-        <p>No cards are due for review right now.</p>
+        <p>No cards are due for review right now in {deckInfo.name}</p>
         {session && (
           <div style={{ marginTop: '1rem' }}>
             <StudyStats session={session} />
@@ -131,9 +145,13 @@ export function Study() {
     <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
       {showSettings && <StudySettings onClose={() => setShowSettings(false)} />}
       
-      <div style={{ marginBottom: '1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <strong>Card {currentCardIndex + 1} of {dueCards.length}</strong>
+      <div style={{ marginBottom: '1rem' }}>
+        <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
+          Studying: <strong>{deckInfo.name}</strong>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <strong>Card {currentCardIndex + 1} of {dueCards.length}</strong>
           {queueStats && (
             <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
               New: {queueStats.newCardsInQueue} | Review: {queueStats.reviewCardsInQueue}
@@ -142,24 +160,25 @@ export function Study() {
               )}
             </div>
           )}
-        </div>
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-          {session && <StudyStats session={session} />}
-          <button
-            onClick={() => setShowSettings(true)}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-            }}
-            title="Study Settings"
-          >
-            ⚙️
-          </button>
+          </div>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+            {session && <StudyStats session={session} />}
+            <button
+              onClick={() => setShowSettings(true)}
+              style={{
+                padding: '0.5rem 1rem',
+                backgroundColor: '#6c757d',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+              }}
+              title="Study Settings"
+            >
+              ⚙️
+            </button>
+          </div>
         </div>
       </div>
 

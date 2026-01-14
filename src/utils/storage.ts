@@ -6,13 +6,17 @@ import {
 } from '../types/storage';
 
 /**
- * Save cards to localStorage
+ * Save cards for a specific deck to localStorage
  */
-export function saveCards(cards: Card[]): void {
+export function saveCards(deckId: string, cards: Card[]): void {
   try {
+    const existingData = loadAllDecks();
     const data: StorageSchema = {
       version: CURRENT_SCHEMA_VERSION,
-      cards,
+      decks: {
+        ...existingData.decks,
+        [deckId]: cards,
+      },
       lastSaved: Date.now(),
     };
     
@@ -25,29 +29,17 @@ export function saveCards(cards: Card[]): void {
 }
 
 /**
- * Load cards from localStorage
+ * Load cards for a specific deck from localStorage
  */
-export function loadCards(): Card[] {
+export function loadCards(deckId: string): Card[] {
   try {
-    const json = localStorage.getItem(STORAGE_KEY);
+    const data = loadAllDecks();
     
-    if (!json) {
-      return [];
-    }
-    
-    const data = JSON.parse(json) as StorageSchema;
-    
-    // Handle schema migration
-    const migratedData = migrateSchema(data);
-    
-    // Validate cards structure
-    if (!Array.isArray(migratedData.cards)) {
-      console.warn('Invalid cards data, returning empty array');
-      return [];
-    }
+    // Get cards for the specified deck
+    const deckCards = data.decks[deckId] || [];
     
     // Validate each card has required fields
-    const validCards = migratedData.cards.filter((card) => {
+    const validCards = deckCards.filter((card) => {
       return (
         card &&
         typeof card.id === 'string' &&
@@ -70,16 +62,61 @@ export function loadCards(): Card[] {
 }
 
 /**
+ * Load all decks data from localStorage (internal use)
+ */
+function loadAllDecks(): StorageSchema {
+  try {
+    const json = localStorage.getItem(STORAGE_KEY);
+    
+    if (!json) {
+      return {
+        version: CURRENT_SCHEMA_VERSION,
+        decks: {},
+        lastSaved: Date.now(),
+      };
+    }
+    
+    const data = JSON.parse(json) as any;
+    
+    // Handle schema migration
+    return migrateSchema(data);
+  } catch (error) {
+    console.error('Failed to load decks from localStorage:', error);
+    // Return empty structure on error
+    return {
+      version: CURRENT_SCHEMA_VERSION,
+      decks: {},
+      lastSaved: Date.now(),
+    };
+  }
+}
+
+/**
  * Migrate storage schema to current version
  */
 function migrateSchema(data: any): StorageSchema {
-  // If no version, assume version 0 (initial schema)
-  if (!data.version || data.version < CURRENT_SCHEMA_VERSION) {
-    return migrateFromVersion0(data);
+  const version = data.version || 0;
+  
+  if (version < CURRENT_SCHEMA_VERSION) {
+    // Migrate through versions
+    if (version < 1) {
+      data = migrateFromVersion0(data);
+    }
+    if (data.version < 2) {
+      data = migrateFromVersion1(data);
+    }
   }
   
-  // Already current version
+  // Already current version or migrated
   if (data.version === CURRENT_SCHEMA_VERSION) {
+    // Ensure decks structure exists
+    if (!data.decks || typeof data.decks !== 'object') {
+      return {
+        version: CURRENT_SCHEMA_VERSION,
+        decks: {},
+        lastSaved: data.lastSaved || Date.now(),
+      };
+    }
     return data as StorageSchema;
   }
   
@@ -91,11 +128,11 @@ function migrateSchema(data: any): StorageSchema {
 /**
  * Migrate from version 0 (no version field) to version 1
  */
-function migrateFromVersion0(data: any): StorageSchema {
+function migrateFromVersion0(data: any): any {
   // If data is just an array of cards (old format)
   if (Array.isArray(data)) {
     return {
-      version: CURRENT_SCHEMA_VERSION,
+      version: 1,
       cards: data,
       lastSaved: Date.now(),
     };
@@ -104,7 +141,7 @@ function migrateFromVersion0(data: any): StorageSchema {
   // If data has cards but no version
   if (data.cards && Array.isArray(data.cards)) {
     return {
-      version: CURRENT_SCHEMA_VERSION,
+      version: 1,
       cards: data.cards,
       lastSaved: data.lastSaved || Date.now(),
     };
@@ -112,20 +149,94 @@ function migrateFromVersion0(data: any): StorageSchema {
   
   // Invalid data - return empty
   return {
-    version: CURRENT_SCHEMA_VERSION,
+    version: 1,
     cards: [],
     lastSaved: Date.now(),
   };
 }
 
 /**
- * Clear all stored cards
+ * Migrate from version 1 (cards array) to version 2 (decks object)
+ */
+function migrateFromVersion1(data: any): StorageSchema {
+  // Get existing cards (may be in cards array or already migrated)
+  const cards: Card[] = Array.isArray(data.cards) ? data.cards : [];
+  
+  // Assign all existing cards to "aiddgen" deck (backward compatibility)
+  return {
+    version: CURRENT_SCHEMA_VERSION,
+    decks: {
+      aiddgen: cards,
+    },
+    lastSaved: data.lastSaved || Date.now(),
+  };
+}
+
+/**
+ * Clear all stored cards for all decks
  */
 export function clearStorage(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch (error) {
     console.error('Failed to clear localStorage:', error);
+  }
+}
+
+/**
+ * Clear cards for a specific deck
+ */
+export function clearDeck(deckId: string): void {
+  try {
+    const data = loadAllDecks();
+    const newDecks = { ...data.decks };
+    delete newDecks[deckId];
+    
+    const updatedData: StorageSchema = {
+      version: CURRENT_SCHEMA_VERSION,
+      decks: newDecks,
+      lastSaved: Date.now(),
+    };
+    
+    const json = JSON.stringify(updatedData);
+    localStorage.setItem(STORAGE_KEY, json);
+  } catch (error) {
+    console.error('Failed to clear deck from localStorage:', error);
+  }
+}
+
+/**
+ * Get all deck IDs that have cards
+ */
+export function getAllDeckIds(): string[] {
+  try {
+    const data = loadAllDecks();
+    return Object.keys(data.decks).filter((deckId) => {
+      const cards = data.decks[deckId];
+      return Array.isArray(cards) && cards.length > 0;
+    });
+  } catch (error) {
+    console.error('Failed to get deck IDs:', error);
+    return [];
+  }
+}
+
+/**
+ * Get all cards across all decks (for migration/debugging)
+ */
+export function getAllCards(): Card[] {
+  try {
+    const data = loadAllDecks();
+    const allCards: Card[] = [];
+    Object.values(data.decks).forEach((deckCards) => {
+      if (Array.isArray(deckCards)) {
+        allCards.push(...deckCards);
+      }
+    });
+    return allCards;
+  } catch (error) {
+    console.error('Failed to get all cards:', error);
+    return [];
   }
 }
 

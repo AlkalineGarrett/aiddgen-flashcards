@@ -1,27 +1,43 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../types/card';
 import { loadCards, saveCards } from './storage';
+import { getDeckGenerator } from './flashcardGenerator';
+import { DeckId } from './deckStorage';
 
 /**
- * React hook for managing cards in localStorage
+ * React hook for managing cards in localStorage for a specific deck
  */
-export function useCardStorage() {
+export function useCardStorage(deckId: DeckId) {
   const [cards, setCards] = useState<Card[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load cards on mount
+  // Load cards on mount or when deckId changes
   useEffect(() => {
-    const loaded = loadCards();
+    setIsLoading(true);
+    const loaded = loadCards(deckId);
+    
+    // Initialize deck with generated flashcards if empty
+    if (loaded.length === 0) {
+      const generator = getDeckGenerator(deckId);
+      const initialCards = generator();
+      if (initialCards.length > 0) {
+        setCards(initialCards);
+        saveCards(deckId, initialCards);
+        setIsLoading(false);
+        return;
+      }
+    }
+    
     setCards(loaded);
     setIsLoading(false);
-  }, []);
+  }, [deckId]);
 
   // Save cards whenever they change
   useEffect(() => {
-    if (!isLoading) {
-      saveCards(cards);
+    if (!isLoading && cards.length > 0) {
+      saveCards(deckId, cards);
     }
-  }, [cards, isLoading]);
+  }, [cards, isLoading, deckId]);
 
   // Update a single card
   const updateCard = useCallback((updatedCard: Card) => {
