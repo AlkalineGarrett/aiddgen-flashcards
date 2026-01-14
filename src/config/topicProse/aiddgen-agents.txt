@@ -1,0 +1,29 @@
+The agent generation logic creates the agent orchestrator file that coordinates specialized agents in the system.
+
+Agent triggers define when each agent is activated:
+- The stack agent is triggered when implementing features using the tech stack
+- The patterns agent is triggered when generating code from specifications like stores, components, API routes, or models
+- The effects agent is triggered for network requests or side-effects
+- The tdd agent is triggered when implementing code changes
+- The review agent is triggered during code review
+- The task agent is triggered for task or epic planning
+- The productmanager agent is triggered for product discovery, user stories, and journeys
+- The security agent is triggered for security concerns
+- The log agent is triggered for documenting changes
+
+Each agent maps to specific rule files:
+- The stack agent uses rules from the stack directory
+- The patterns agent uses rules from the patterns directory
+- The effects agent uses the effects rules
+- The tdd agent uses the tdd rules
+- The review agent uses the review rules
+- The task agent uses the task creator rules
+- The productmanager agent uses the product manager rules
+- The security agent uses the security rules
+- The log agent uses the log rules
+
+The generation process scans the generated rules to find matching agent rule mappings. For each match, it adds the agent to the Agents block with the appropriate trigger. Then it generates the agent orchestrator file with alwaysApply set to true.
+
+The output template creates an agent orchestrator file that coordinates specialized agents. It includes a description, sets alwaysApply to true, and lists all detected agents with their triggers and rule paths. The handleRequest function matches the request context - if it spans multiple domains, it composes a prompt with relevant guides, and if it's a single domain, it dispatches to the matching agent. The constraints are to do one thing at a time, get approval before continuing, and check the agent orchestrator for unrecognized commands.
+
+The constraints for agent generation are: only include agents for rules that exist, set alwaysApply to true on the orchestrator, and keep the orchestrator thin so it only dispatches to other agents.

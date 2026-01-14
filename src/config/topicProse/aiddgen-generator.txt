@@ -1,0 +1,145 @@
+The aiddgen system is a core orchestrator for generating AI command systems. It acts as a top-tier AI systems architect, generating SudoLang rule files that instruct AI coding assistants.
+
+The output directory for all generated files is ./aidd/ by default. It's critical that all output goes to this directory and never to the aiddgen directory itself.
+
+The system references several key files:
+- The SudoLang style guide
+- The choice hierarchy rules
+- Command generation rules
+- Rule generation logic
+- Agent generation logic
+- Various guidance files
+
+The aiddgen commands include several options:
+- The /aiddgen command does a full setup from lifecycle through stack
+- The /aiddgen-stack command updates just the stack configuration
+- The /aiddgen-add-command command adds a custom command
+- The /aiddgen-add-rule command adds a custom rule
+- The /aiddgen-status command shows the current configuration
+- The /aiddgen-help command displays help information
+
+The generation process starts with chooseAndGenerateAll. If the output directory already exists, it asks whether to update or start fresh. Then, for each level in the choice hierarchy, if there's no recorded choice, it collects choices and records them. Finally, it generates all the necessary files.
+
+The collectChoices process determines what choices are needed for each hierarchy level. It omits choices if the problem space obviously doesn't need them - for example, if building a fully-offline game, remote storage isn't necessary. Conversely, it adds choices if the problem space requires unforeseen choices - for example, if the user needs to make LLM calls, it determines what choices are necessary. For each choice needed, if there's existing code, it detects the already-existing choice from the codebase. It then researches best-fit and alternative choices given the hierarchy so far, regardless of what was detected. It prefers choices recommended by experts and weights them by recency and popularity, since these will have better community support, documentation, and more up-to-date security. It presents the detected choice and best-fit alternatives to the user and asks if they want a presented choice or to override, which can be single or multi-select based on the situation.
+
+The recordChoices process records user choices in choices.mdc, marking each as either explicit (user-chosen) or inferred.
+
+The generateAll process generates choices, then generates core rules, stack rules, patterns, effect rules, supporting rules, commands, and the agent orchestrator, in that order.
+
+The chooseAndGenerateStack process collects choices for the stack hierarchy level and records them.
+
+The generateStack process generates stack rules, patterns, and updates the agent orchestrator.
+
+The addCommandProcess asks about the command's purpose, infers its structure, confirms with the user, and then generates the command.
+
+Similarly, the addRuleProcess asks what the rule should cover, asks what guidance it should follow, infers the structure, and generates the rule.
+
+The statusProcess checks if choices.mdc exists. If not, it tells the user to run /aiddgen first. If it exists, it displays the choices and lists what has been generated.
+
+The showHelp process displays the aiddgen commands.
+
+Output density rules emphasize being concise - say it once and trust the AI to apply it broadly. Never repeat the same concept across files. Omit what the AI can infer from context. If you're tempted to explain, just state the rule and skip the explanation. If you're tempted to repeat, reference the original location instead.
+
+The separation of concerns follows a delegation pattern:
+- Commands should be thin and reference rule files
+- Rules should contain the detailed logic
+- Core should contain shared behaviors referenced by all
+
+If a command duplicates rule content, extract it to a rule and reference it. If the same logic appears in multiple files, extract it to a shared rule.
+
+Constraints for generation include:
+- All generated files must use SudoLang patterns
+- Lean into inference so the AI fills obvious details
+- The generated core.mdc must include the RTC thinking pattern
+- Commands must be thin and delegate to rule files
+- Never repeat the same concept across files
+- Generate concrete spec patterns for the detected stack
+- The /help command must list available spec patterns and agents
+
+Agent generation creates the agent orchestrator file that coordinates specialized agents. Agent triggers define when each agent activates:
+- Stack for implementing features using the tech stack
+- Patterns for generating from specs
+- Effects for network requests or side-effects
+- Tdd for implementing code changes
+- Review for code review
+- Task for task or epic planning
+- Productmanager for product discovery and user stories
+- Security for security concerns
+- Log for documenting changes
+
+Each agent maps to specific rule files:
+- Stack uses stack rules
+- Patterns uses pattern rules
+- Effects uses effects rules
+- Tdd uses tdd rules
+- Review uses review rules
+- Task uses task creator rules
+- Productmanager uses product manager rules
+- Security uses security rules
+- Log uses log rules
+
+The agent generation process scans generated rules to find matching agent rule mappings. For each match, it adds the agent to the Agents block with the appropriate trigger. Then it generates the agent orchestrator file with alwaysApply set to true.
+
+The orchestrator template creates a file that coordinates specialized agents, lists all detected agents with their triggers and rule paths, handles requests by either composing prompts for multiple domains or dispatching to a single agent, and includes constraints to do one thing at a time and check for unrecognized commands.
+
+Command generation creates thin commands that reference rule files. Always-included commands are:
+- /help
+- /plan
+- /task
+- /review
+- /commit
+- /explain
+- /debug
+
+Additional commands are added based on context:
+- TeamTool+ adds /discover, /execute, and /log
+- MVP+ adds /feature and /journey
+- BusinessRisk+ adds /security-review
+
+Command descriptions map to specific functions:
+- /help lists commands and agents
+- /plan reviews plan and suggests next steps
+- /task creates epic and decomposes into tasks
+- /review performs code review
+- /commit commits with conventional format
+- /explain explains code or concept
+- /debug debugs an issue
+- /discover does product discovery
+- /execute executes task or epic
+- /log logs changes
+- /feature plans and implements feature
+- /journey maps user journey
+- /security-review performs security audit
+
+Each command maps to a specific rule file where the actual process logic is defined. The generation process starts with always-included commands, then adds context-specific commands based on lifecycle and risk level. For each command, it generates a command file following the command template.
+
+The command template creates ultra-thin files with just frontmatter, a title, and a rule reference. Commands are limited to a maximum of 7 lines and delegate entirely to rules - no process logic lives in commands.
+
+Supporting rules are generated and calibrated to lifecycle context. Always-generated rules include:
+- rules/task-creator.mdc (from task lifecycle guidance)
+- rules/review.mdc (references all generated stack/pattern rules)
+- rules/tdd.mdc (from testing methodology guidance)
+
+Additional rules are generated based on context:
+- TeamTool+ generates rules/log.mdc (for activity logging)
+- MVP+ generates rules/productmanager.mdc (for product management)
+- BusinessRisk+ generates rules/security.mdc (for security patterns)
+
+The core rule generation creates rules/core.mdc with the RTC thinking pattern from thinking patterns guidance, behaviors calibrated per lifecycle, constraints derived from lifecycle parameters, and principle levels from programming principles guidance.
+
+The review rule generation scans all generated rules, builds a Criteria block referencing each, includes OWASP checks if BusinessRisk+, and references security rules if generated.
+
+Stack rule generation creates one rule file per technology in the confirmed stack, calibrates to context, and includes layer-specific patterns.
+
+Pattern rule generation creates patterns based on detected layers:
+- WebUI uses component pattern
+- StateManagement uses store pattern
+- DAL uses model pattern
+- API uses api-route pattern
+- CLI uses command pattern
+
+For each layer, if a pattern exists, it generates the pattern rule file and a corresponding command file.
+
+Effects rule generation creates rules/effects.mdc if layers include API, Server, or Worker. The effects pattern uses pure functions that yield call or put actions, making them testable via iterator.next() and observable.
+
+Constraints for rule generation include: calibrate rule strictness to lifecycle, reference guidance files without duplicating, the review rule must reference all other generated rules, one stack rule per technology, only generate components relevant to selected layers, patterns derived from layers and stack (not hardcoded), and calibrate strictness to lifecycle.

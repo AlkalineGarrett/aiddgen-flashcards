@@ -1,0 +1,16 @@
+Code review guidelines help ensure code follows the established rules and patterns while keeping the focus appropriate for the project lifecycle.
+
+The context is set to: Lifecycle PoC and Risk Personal.
+
+Review criteria include:
+- Checking against stack-specific rules from the stack directory
+- Verifying that patterns from the patterns directory are followed
+- Checking against core rules
+
+The review process involves several steps:
+- First, check the code against stack-specific rules
+- Second, verify that patterns are being followed
+- Third, suggest improvements
+- Fourth, flag only critical issues
+
+The constraints for PoC projects emphasize working code over perfect code. Only flag critical issues, and suggest improvements without requiring them.

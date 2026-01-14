@@ -2,6 +2,7 @@ import { Card } from '../types/card';
 import { Topic, TopicContent } from '../types/topic';
 import { getDeckGenerator } from './flashcardGenerator';
 import { DeckId } from './deckStorage';
+import { generateTopicProse } from './topicProse';
 
 /**
  * Extract primary topic from a tag
@@ -88,11 +89,15 @@ export function generateTopicContent(deckId: DeckId, existingCards: Card[] = [])
       const existingCardIds = new Set(existingCards.map((c) => c.id));
       const newCards = cards.filter((card) => !existingCardIds.has(card.id));
       
+      // Generate prose for this topic
+      const prose = generateTopicProse(topicId, deckId);
+      
       return {
         id: topicId,
         name: topicId,
         displayName: formatTopicName(topicId),
         cards: newCards,
+        prose,
       };
     })
     .filter((topic) => topic.cards.length > 0) // Only include topics with cards

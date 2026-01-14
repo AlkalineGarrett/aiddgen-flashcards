@@ -5,7 +5,7 @@ export interface Topic {
   name: string;
   displayName: string;
   cards: Card[];
-  description?: string;
+  prose: string;
 }
 
 export interface TopicContent {

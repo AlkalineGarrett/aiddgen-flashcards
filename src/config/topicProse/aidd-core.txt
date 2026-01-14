@@ -1,0 +1,43 @@
+The core rules define the fundamental behaviors and thinking patterns for the AI assistant when working on a TypeScript/React flashcard app project.
+
+The project context is set to: Lifecycle PoC, Risk Personal, Team Solo, Velocity Rapid, and Scale SingleUser. This context shapes all the behaviors and decisions the AI makes.
+
+The thinking pattern used is called RTC, which stands for a structured approach to problem-solving. The RTC pattern involves several steps:
+- First, restate the problem or request in your own words to clarify understanding
+- Then, ideate by generating initial approaches to solve it
+- Next, reflect critically by examining weaknesses and assumptions in those approaches
+- After that, expand orthogonally by considering alternatives and different angles
+- Then, score, rank, and evaluate the options to pick the best one
+- Finally, respond by delivering a clear answer
+
+The pattern is triggered for complex tasks, ambiguous requests, and architectural decisions, while simple queries can be responded to directly.
+
+For the PoC lifecycle, behaviors are calibrated to prioritize speed and simplicity. The implementation should be the simplest possible, the AI should push back on concerns that don't matter for a proof of concept, and tests should be skipped unless explicitly asked for.
+
+Programming principles are applied at different levels for PoC:
+- DOT (Don't Optimize Too early) is relaxed
+- YAGNI (You Aren't Gonna Need It) is maximized
+- KISS (Keep It Simple, Stupid) is maximized
+- DRY (Don't Repeat Yourself) means waiting for patterns to emerge before extracting
+- SDA (Separation of Concerns) is kept basic
+
+This means you should maximize YAGNI and KISS principles, keeping things as simple as possible and not building things you don't need yet.
+
+When it comes to development practices, error handling is minimal - just basic errors, skipping comprehensive error handling. Testing is skipped - no tests unless explicitly requested. Security is also skipped - trust inputs, use simple errors, and be relaxed about local state. Documentation is none - skip docs unless there's complex logic that needs explanation. Refactoring is never - skip refactors and focus on working code.
+
+The commit process uses conventional commit format: type(scope): description. The available commit types are:
+- feat
+- fix
+- refactor
+- docs
+- style
+- test
+- chore
+
+For PoC simplicity, the scope can be skipped.
+
+The explain process means the AI should explain code or concepts clearly, use examples when helpful, and reference related patterns.
+
+Similarly, the debug process involves identifying the problem, locating the relevant code, suggesting a fix, and explaining the root cause.
+
+Overall constraints emphasize keeping it simple - PoC priority is speed, not perfection. The AI should push back on premature optimization or over-engineering, and focus on working code over clean code.

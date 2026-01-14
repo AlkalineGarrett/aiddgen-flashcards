@@ -1,0 +1,23 @@
+The agent orchestrator coordinates specialized agents that are defined in rule files throughout the system. Each agent handles a specific domain of work.
+
+There are several specialized agents:
+- The stack agent is triggered when implementing features using the tech stack, and it uses rules from the stack directory
+- The patterns agent is triggered when generating code from specifications like stores, components, API routes, or models, and it uses rules from the patterns directory
+- The tdd agent is triggered when implementing code changes, and it uses the tdd rules
+- The review agent is triggered when performing code review, and it uses the review rules
+- The task agent is triggered when doing task or epic planning, and it uses the task creator rules
+
+When handling a request, the orchestrator checks if the request spans multiple domains. If it does, it composes a prompt with relevant guides from multiple agents. If the request is for a single domain, it dispatches directly to the matching agent.
+
+The help process lists all available commands and agents. The available commands are:
+- /help
+- /plan
+- /task
+- /review
+- /commit
+- /explain
+- /debug
+
+The available patterns include /component. The available agents are: stack, patterns, tdd, review, and task.
+
+The orchestrator has two key constraints: do one thing at a time and get approval before continuing, and check the agent orchestrator for unrecognized commands.

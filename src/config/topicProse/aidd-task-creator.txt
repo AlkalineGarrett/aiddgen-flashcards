@@ -1,0 +1,42 @@
+The task creator manages epics and tasks for development, helping you break down work into manageable pieces.
+
+The context is set to: Lifecycle PoC and Team Solo.
+
+Task status can be one of the following:
+- pending
+- in_progress
+- completed
+- blocked
+- cancelled
+
+An epic includes a name, status, goal, overview, and a list of tasks.
+
+Files are stored in specific locations:
+- Epics are stored in tasks/[epic-name].md
+- Archived epics are stored in tasks/archive/YYYY-MM-DD-[epic-name].md
+- The plan is stored in plan.md
+
+The epic template follows a specific format. It starts with the epic name as a title, includes a status (like PLANNED), a brief goal, and an overview that starts with WHY. Then it lists tasks with brief descriptions and requirements in Given/Should format.
+
+The create task process involves several steps:
+- First, gather context about what needs to be built
+- Then, decompose the work into smaller pieces
+- Next, create the epic document
+- Then, review the epic
+- Finally, await approval before proceeding
+
+Planning rules specify that tasks should be atomic (around 50 lines each), sequenced (ordered by dependencies), and informal (PoC allows informal planning).
+
+The execute task process involves:
+- Loading the epic
+- Identifying the next task to work on
+- Executing a single task
+- Validating that it meets success criteria
+- Reporting what was accomplished
+- Awaiting approval before moving to the next task
+
+Execution rules specify that only one task should be in progress at a time, validation should verify success criteria, and reporting should summarize what was accomplished.
+
+The plan process reviews the plan.md file if it exists, suggests next steps based on the current state, and identifies the next task to execute.
+
+Constraints include: single-task execution only, explicit approval between tasks, epic overview must start with WHY, requirements must use Given/Should format, and informal format is acceptable for PoC.

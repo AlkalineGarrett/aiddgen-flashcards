@@ -1,0 +1,14 @@
+Testing methodology uses Vitest as the test runner, though testing is generally skipped for PoC projects.
+
+The context is set to: Lifecycle PoC, TestRunner Vitest, and Testing Skip.
+
+Testing rules specify that tests should be skipped unless explicitly requested. When testing is requested, use Vitest patterns as defined in the stack rules, and follow the test structure patterns from the testing methodology guidance.
+
+The test structure follows a specific format:
+- Use describe blocks to group tests by the unit under test
+- Use it blocks for individual scenarios
+- Include comments for the given context and the expected behavior (should)
+- Write the actual test code to exercise the unit
+- Use expect assertions to compare actual results with expected values
+
+The constraints are: tests only when requested, use Vitest for testing, and follow RITE (Readable, Isolated, Thorough, Explicit) principles when testing.

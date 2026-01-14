@@ -1,0 +1,42 @@
+The aiddgen system provides commands to generate and manage AI command system configurations.
+
+The /aiddgen command initializes the full AI command system. When you run this command, it guides you through the choice hierarchy, collecting your choices for problem domain, lifecycle stage, architecture, ecosystem, and tech stack. It then generates all the necessary rule files, commands, and agent orchestrator configuration. This is the main command to set up a new aidd configuration. The command references the choose and generate all process in the generator rules.
+
+If you need to update just your stack, the /aiddgen-stack command allows you to update only the technology stack configuration. This command lets you collect new stack choices and regenerate only the stack-related rules and patterns without regenerating everything. This references the choose and generate stack process.
+
+For customization, the /aiddgen-add-command command helps you add a custom command to your system. The process asks about the command's purpose, infers its structure, confirms with you, and then generates the command file following the command template. Commands are ultra-thin files that just reference rule files - all the actual logic lives in the rules. This references the add command process.
+
+Similarly, the /aiddgen-add-rule command helps you add a custom rule to your system. The process asks what the rule should cover, what guidance it should follow, infers the structure, and generates the rule file. This references the add rule process.
+
+The /aiddgen-help command displays help information about all available aiddgen commands. It shows you what each command does and how to use them. This references the show help process.
+
+To check your current setup, the /aiddgen-status command shows your current configuration. If you haven't run /aiddgen yet, it tells you to run that first. If you have a configuration, it displays your recorded choices and lists what files have been generated. This references the status process.
+
+The generated command system includes several always-included commands that are available in all generated systems regardless of lifecycle or risk level:
+- /help
+- /plan
+- /task
+- /review
+- /commit
+- /explain
+- /debug
+
+Additional commands are added based on context. For TeamTool+ lifecycle and above, the system adds:
+- /discover (for product discovery)
+- /execute (for executing tasks or epics)
+- /log (for logging changes)
+
+For MVP+ lifecycle and above, the system adds:
+- /feature (for planning and implementing features)
+- /journey (for mapping user journeys)
+
+For Business+ risk level and above, the system adds:
+- /security-review (for security audits)
+
+Each command maps to a specific rule file where the actual process logic is defined. For example:
+- The /task command references rules/task-creator.mdc#createTask
+- The /review command references rules/review.mdc#reviewProcess
+- The /plan command references rules/task-creator.mdc#planProcess
+- The /help command references rules/agent-orchestrator.mdc#helpProcess
+
+Other commands similarly reference their respective rule files.

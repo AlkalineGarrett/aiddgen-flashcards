@@ -1,0 +1,26 @@
+The aidd system provides several commands to help you work with the AI assistant effectively.
+
+The /help command lists all available commands and agents. When you use this command, the system shows you what commands are available (like /plan, /task, /review, /commit, /explain, /debug) and what specialized agents can help you (like stack, patterns, tdd, review, and task agents). This command references the help process defined in the agent orchestrator rules.
+
+Moving on to planning, the /plan command reviews your plan.md file if it exists and suggests next steps based on the current state of your project. It identifies the next task to execute and helps you understand where you are in your development process. This command references the plan process in the task creator rules.
+
+For task management, the /task command helps you create epics and decompose them into tasks. When you use this command, the system gathers context about what you want to build, breaks it down into manageable tasks, creates an epic document, and waits for your approval before proceeding. This command references the create task process in the task creator rules.
+
+When it comes to code quality, the /review command performs code review against stack rules and patterns. It checks your code against stack-specific rules, verifies that patterns are followed, suggests improvements, and flags critical issues. For PoC projects, the focus is on working code over perfect code, and it only flags critical issues. This command references the review process in the review rules.
+
+For version control, the /commit command helps you commit changes using conventional commit format. This format uses a type prefix (like feat, fix, refactor) followed by an optional scope and a description. The format is: type(scope): description. For PoC projects, the scope can be skipped for simplicity. The available commit types are:
+- feat
+- fix
+- refactor
+- docs
+- style
+- test
+- chore
+
+This command references the commit process defined in the core rules.
+
+The /explain command explains code or concepts clearly. When you use this command, the AI will explain the code or concept you're asking about, use examples when helpful, and reference related patterns. This command references the explain process in the core rules.
+
+Similarly, the /debug command helps you debug issues. When you use this command, the AI will identify the problem, locate the relevant code, suggest a fix, and explain the root cause. This command references the debug process in the core rules.
+
+Finally, the /component command generates a React component from a specification. You provide a spec that includes the component name, props, optional state, behaviors, and constraints, and the system generates a complete TypeScript component following React patterns. This command references the component pattern rules.

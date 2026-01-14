@@ -1,0 +1,19 @@
+The component pattern enables generating React components from high-level specifications rather than writing them from scratch.
+
+A component specification includes several parts:
+- A name (string)
+- Props (an object with key-value pairs where values are types)
+- Optional state (an object with key-value pairs where values are types)
+- Behaviors (an array of strings describing what the component does)
+- Optional constraints (an array of strings with additional requirements)
+
+The component generation process follows these steps:
+- First, create a TypeScript interface for the props
+- Then, generate the function component structure
+- Next, add state hooks if state is needed
+- After that, implement the behaviors described in the spec
+- Finally, return the JSX structure
+
+For example, a Card component might have props like id (string), front (string), back (string), and onFlip (a function that takes no parameters and returns void). It might have state like flipped (boolean). Its behaviors might include flipping the card on click and showing the front or back based on the state.
+
+The constraints for component generation are: generate a complete component from the spec, use TypeScript for props, follow React hooks patterns, and keep the implementation simple for PoC.

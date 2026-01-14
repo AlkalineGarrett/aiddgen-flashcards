@@ -1,0 +1,21 @@
+React guidelines for PoC lifecycle focus on simplicity and working code over ideal structure.
+
+The context is set to: Lifecycle PoC, Framework React, and State Management React Hooks.
+
+Programming principles are applied at relaxed levels:
+- DOT (Don't Optimize Too early) is relaxed
+- YAGNI (You Aren't Gonna Need It) is maximized
+- KISS (Keep It Simple, Stupid) is maximized
+- DRY (Don't Repeat Yourself) means waiting for patterns to emerge before extracting
+
+For component structure, prefer function components over class components. Use React hooks like useState, useEffect, and useContext as needed. Props should have explicit typing with TypeScript. If you're tempted to use class components, prefer function components instead. If you're tempted to abstract prematurely, inline the logic and extract it later if a pattern emerges.
+
+When managing state, use useState for component-local state. Use useContext for shared state. For complex state, wait for a pattern to emerge before extracting it. Don't use a state library prematurely - use React hooks first. If state becomes scattered, wait for the pattern, then consider using context or a reducer.
+
+For patterns, props should use explicit TypeScript interfaces. Events should use inline handlers, and extract them if they're reused. Effects should use useEffect for side effects, with cleanup when needed. Keys should be stable for lists.
+
+Overall constraints emphasize simplicity over patterns, inline code over extraction until the pattern is clear, and working code over ideal structure.
+
+Moving to build tools, Vite is used as the build tool with TypeScript in the ecosystem. The Vite configuration uses TypeScript config and the React plugin from vitejs. Path aliases can be configured as needed. The constraints are to use Vite defaults when possible, configure only when necessary, and keep the config minimal for PoC.
+
+For testing, Vitest is the testing framework, though testing is skipped for PoC unless explicitly requested. When testing is requested, use Vitest patterns. Keep tests simple with basic structure and skip comprehensive coverage. The test structure uses describe blocks for the unit under test, it blocks for scenarios, with given/should comments, and expect assertions. The constraints are to only test when requested, keep tests simple and focused, and skip comprehensive coverage for PoC.

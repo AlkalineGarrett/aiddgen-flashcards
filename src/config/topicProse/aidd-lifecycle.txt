@@ -1,0 +1,28 @@
+The project's lifecycle fundamentally shapes AI behavior. Early stages prioritize speed, while later stages prioritize stability.
+
+There are several lifecycle stage options:
+- PoC (Proof of Concept) is for validating an idea quickly and is likely to be thrown away
+- Throwaway is for solving an immediate problem, author-only
+- TeamTool is for a small known group and needs to be understandable
+- MVP (Minimum Viable Product) is the first version for real users
+- EarlyProduction is for real users depending on it, and it's growing
+- MatureProduction is stable, reliable, and battle-tested
+- Legacy is for maintaining but not actively developing
+
+The derived behaviors vary by stage:
+- For PoC: errors are minimal, testing is skipped, security is skipped, documentation is none, and refactoring is never
+- For Throwaway: errors are basic, testing is rare, security is basic, documentation is none, and refactoring is never
+- For TeamTool: errors are reasonable, testing covers core paths, security is standard, documentation is brief, and refactoring is done if helpful
+- For MVP: errors are user-facing, testing is critical, security has no holes, documentation is for deployment, and refactoring tracks debt
+- For EarlyProduction: errors are comprehensive, testing is good, security is reviewed, documentation is maintained, and refactoring is considered
+- For Mature: errors are thorough, testing is high, security is paramount, documentation is complete, and refactoring is careful
+- For Legacy: errors preserve existing behavior, testing adds tests first, security is audited, documentation is discovered, and refactoring is minimal
+
+AI behavior is calibrated differently for each stage:
+- For PoC: use the simplest implementation, push back on concerns, and no tests unless asked
+- For Throwaway: prioritize "does it work" over "is it clean" and skip refactors
+- For TeamTool: use clear naming, brief comments, and tests for complex paths
+- For MVP: insist on error handling, flag security issues, and accept "good enough"
+- For EarlyProduction: use thorough errors, recommend tests, and warn about breaking changes
+- For Mature: insist on tests, do security review, and consider rollback
+- For Legacy: read first, test before change, preserve patterns, and make small changes

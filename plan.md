@@ -1,104 +1,90 @@
 # Read-Before-Quiz Feature Plan
 
-**Status**: 📋 PLANNED
-**Goal**: Allow users to read content topic by topic before being quizzed with flashcards
+**Status**: 🚧 IN PROGRESS
+**Goal**: Allow users to read content in prose form
 
 ## Overview
 
-Currently, users jump straight into flashcards without reading the underlying content. This feature adds a reading mode where users can read organized content by topic, confirm they've read it, and then generate flashcards for that topic. This improves learning by providing context before testing knowledge.
+Replace the current flashcard-based reading approach with prose/paragraph form explanations for each topic, sourced from the original files in `aidd/` and `aiddgen/`.
 
----
-
-## Task 1: Extract Topic Content Structure ✅
-
-Create a utility to organize flashcard data by topics (primary tags) and generate readable content summaries.
+### Task 1: AI agent task - Generate Prose
 
 **Requirements**:
-- ✅ Given flashcard data with tags, should group cards by primary topic tag
-- ✅ Given a topic tag, should generate a readable summary of that topic's content
-- ✅ Should identify primary tags vs secondary tags (e.g., 'commands' is primary, 'choice-hierarchy' extracts 'choice')
-- ✅ Should work for both 'aidd' and 'aiddgen' decks
+- Given a topic ID and deck ID, read corresponding source files from `aidd/` and `aiddgen/`
+- map topic IDs to correct source file paths
+- parse source files and extract relevant content
+- compose prose explanations in paragraph form
+- handle missing or incomplete source files gracefully
 
-**Files created**:
-- ✅ `src/utils/topicContent.ts` - Extract and organize topic content
-- ✅ `src/types/topic.ts` - Topic type definitions
+**Topic-to-source file mapping**:
+- `commands` → `aidd/commands/*.md` + `aiddgen/commands/*.md`
+- `agents` → `aidd/rules/agent-orchestrator.mdc` + `aiddgen/rules/generator/agents.mdc`
+- `choice-hierarchy` → `aiddgen/rules/choices/choice-hierarchy.mdc`
+- `lifecycle` → `aiddgen/rules/choices/lifecycle.mdc`
+- `core` → `aidd/rules/core.mdc`
+- `stack` → `aidd/rules/stack/*.mdc`
+- `patterns` → `aidd/rules/patterns/*.mdc`
+- `review` → `aidd/rules/review.mdc`
+- `tdd` → `aidd/rules/tdd.mdc`
+- `task-creator` → `aidd/rules/task-creator.mdc`
+- `generator` → `aiddgen/rules/generator.mdc` + `aiddgen/rules/generator/*.mdc`
 
 ---
 
-## Task 2: Create Topic Reading Component ✅
-
-Build a component that displays topics one at a time with readable content.
+### Task 2: Verify Content Coverage
 
 **Requirements**:
-- ✅ Given a list of topics, should display one topic at a time
-- ✅ Should show topic name and organized content (all cards for that topic)
-- ✅ Should have navigation (next/previous topic)
-- ✅ Should show progress (e.g., "Topic 2 of 5")
-- ✅ Should have a "Mark as Read" or "I've Read This" button
-- ✅ Should track which topics have been read
+- Should make sure prose flows naturally
+- Should make sure prose explains concepts sufficiently
+- Should verify all flashcard Q&A pairs are covered in prose explanations
+- Should test with both 'aidd' and 'aiddgen' decks
+- Should ensure no information is lost in transition from flashcards to prose
+- Should document any gaps or missing content
 
-**Files created**:
-- ✅ `src/components/TopicReader.tsx` - Main reading interface component
-- ✅ `src/types/topic.ts` - Topic type definitions (created in Task 1)
+**Verification approach**:
+- Compare flashcard content from `flashcardGenerator.ts` with generated prose
+- Ensure all topics have complete prose explanations
+- Test reading experience for completeness
 
 ---
 
-## Task 3: Add Topic Confirmation and Flashcard Generation ✅
+### Task 2b: Manually fix up content
 
-Allow users to confirm they've read a topic and generate flashcards for confirmed topics.
+**Actions**:
+- Make sure prose flows naturally
+- Make sure prose explains concepts sufficiently
+- Close coverage gaps in prose explanations w.r.t. flashcard Q&A pairs
+- Fix both 'aidd' and 'aiddgen' decks
+- Modify the files under config/topicProse only for this task
+
+---
+
+### Task 2c: Manually make text in config/topicProse/* more natural
+
+**Actions**:
+- Convert any prose that is a list of 4+ items into a bulleted list, which is easier to read than long prose lists.
+- Vary the grammatical structure of adjacent sentences so that the text doesn't feel choppy.
+- Add transitions between topics.
+
+---
+
+### Task 3: Update Data Structures and Content Generation
 
 **Requirements**:
-- ✅ Given a confirmed topic, should generate flashcards for that topic
-- ✅ Should only generate flashcards that don't already exist in storage
-- ✅ Should provide feedback when flashcards are added
-- ✅ Should allow users to review which topics are confirmed vs unconfirmed
-- ✅ Should persist confirmation state (localStorage)
-
-**Files created/modified**:
-- ✅ `src/utils/topicConfirmation.ts` - Track topic confirmations and generate flashcards
-- ✅ `src/components/TopicReader.tsx` - Added confirmation logic and flashcard generation
+- Should add `prose: string` (required) field to `Topic` interface
+- Should update `generateTopicContent` to include prose for each topic
+- Should ensure prose generation works for both 'aidd' and 'aiddgen' decks
+- Don't maintain backward compability, delete obsolete things
 
 ---
 
-## Task 4: Integrate Reading Mode into Navigation ✅
-
-Add reading mode as a new route/view option in the app.
+### Task 4: Update Read UI to Display Prose
 
 **Requirements**:
-- ✅ Given a deck selection, should offer "Read Topics" option alongside "Study" and "Manage Cards"
-- ✅ Should add new route type: `{ type: 'read'; deckId: DeckId }`
-- ✅ Should update App.tsx routing to handle read route
-- ✅ Should add navigation button in header to access reading mode
-- ✅ Should allow users to switch between read, study, and manage views
+- Should display prose paragraphs instead of individual flashcards
+- Should maintain same navigation and confirmation flow
+- Should preserve topic selection and progress tracking
+- Should ensure prose is readable and well-formatted
 
-**Files modified**:
-- ✅ `src/App.tsx` - Added read route, navigation button, and routing logic
-- ✅ `src/components/TopicReader.tsx` - Already integrated (created in Task 2)
-
----
-
-## Task 5: Topic Selection and Progress Tracking ✅
-
-Allow users to see which topics are available, which they've read, and resume reading.
-
-**Requirements**:
-- ✅ Given a deck, should show list of all available topics
-- ✅ Should indicate which topics have been read/confirmed
-- ✅ Should allow users to jump to specific topics
-- ✅ Should show overall progress (e.g., "3 of 10 topics read")
-- ✅ Should allow resuming from last read topic
-
-**Files modified**:
-- ✅ `src/components/TopicReader.tsx` - Enhanced topic selection view with progress tracking and resume functionality
-- ✅ `src/utils/topicConfirmation.ts` - Already tracks reading progress (created in Task 3)
-
----
-
-## Next Steps
-
-1. Start with Task 1 to establish the data structure
-2. Then Task 2 to build the reading interface
-3. Follow with Task 3 to enable confirmation
-4. Integrate with Task 4
-5. Polish with Task 5
-
+**Files to modify**:
+- `src/components/TopicReader.tsx` - Replace flashcard display with prose display

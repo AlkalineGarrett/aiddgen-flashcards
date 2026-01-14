@@ -1,0 +1,17 @@
+User choices form a hierarchy where higher levels inform lower-level defaults. This means that choices you make at a higher level help determine reasonable defaults for lower levels.
+
+The choice hierarchy has five levels:
+- Level 1 is the Problem Domain, which asks what problem you're working in or what problem you want to solve with software
+- Level 2 is the Lifecycle, which includes the lifecycle stage and lifecycle parameters (risk domain, team context, change velocity, and system scale)
+- Level 3 is Architecture
+- Level 4 is the Ecosystem, which is the language or runtime
+- Level 5 is the Tech Stack
+
+Lifecycle parameters have default values based on the lifecycle stage:
+- For PoC or Throwaway stages: Personal risk, Solo team, Rapid velocity, and Local scale
+- For TeamTool: Internal risk, Small team, Active velocity, and Team scale
+- For MVP: Business risk, Small team, Active velocity, and Users scale
+- For EarlyProduction: Business risk, Multiple teams, Active velocity, and Users scale
+- For MatureProduction: Business+ risk, Multiple teams, Measured velocity, and Organization scale
+
+The cascade rules define how the hierarchy works. Higher levels inform lower levels, meaning the lifecycle stage shapes reasonable defaults for architecture, ecosystem, and tech stack choices. Explicit user choices override inferred defaults, so if you explicitly choose something, that beats any cascade default. Both explicit and inferred choices should be recorded separately, so the system knows what you explicitly chose versus what was inferred from higher-level choices.

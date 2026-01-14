@@ -286,49 +286,94 @@ export function TopicReader({ deckId }: TopicReaderProps) {
               {currentTopic.displayName}
             </h2>
             
-            <div style={{ marginBottom: '1rem', fontSize: '0.875rem', color: '#666' }}>
-              {currentTopic.cards.length} card{currentTopic.cards.length !== 1 ? 's' : ''} in this topic
+            <div style={{ marginBottom: '1.5rem', fontSize: '0.875rem', color: '#666' }}>
+              {currentTopic.cards.length} flashcard{currentTopic.cards.length !== 1 ? 's' : ''} will be generated when you confirm this topic
             </div>
 
-            {/* Display all cards as readable content */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {currentTopic.cards.map((card, index) => (
-                <div
-                  key={card.id}
-                  style={{
-                    border: '1px solid #ddd',
-                    borderRadius: '6px',
-                    padding: '1.5rem',
-                    backgroundColor: 'white',
-                  }}
-                >
-                  <div style={{ 
-                    fontSize: '0.875rem', 
-                    color: '#666', 
-                    marginBottom: '0.5rem',
-                    fontWeight: '500',
-                  }}>
-                    Card {index + 1}
-                  </div>
-                  <div style={{ 
-                    fontSize: '1.1rem', 
-                    marginBottom: '1rem',
-                    fontWeight: '500',
-                    color: '#333',
-                  }}>
-                    {card.front}
-                  </div>
-                  <div style={{
-                    borderTop: '1px solid #eee',
-                    paddingTop: '1rem',
-                    fontSize: '1rem',
-                    color: '#555',
-                    lineHeight: '1.6',
-                  }}>
-                    {card.back}
-                  </div>
-                </div>
-              ))}
+            {/* Display prose content */}
+            <div style={{
+              fontSize: '1rem',
+              color: '#333',
+              lineHeight: '1.8',
+              textAlign: 'left',
+            }}>
+              {(() => {
+                const paragraphs = currentTopic.prose.split('\n\n').filter(p => p.trim());
+                const elements: JSX.Element[] = [];
+                
+                paragraphs.forEach((paragraph, pIndex) => {
+                  const lines = paragraph.split('\n').map(l => l.trim()).filter(l => l);
+                  const parts: JSX.Element[] = [];
+                  let currentList: string[] = [];
+                  let currentParagraph: string[] = [];
+                  
+                  const flushParagraph = () => {
+                    if (currentParagraph.length > 0) {
+                      const text = currentParagraph.join(' ');
+                      if (text.trim()) {
+                        parts.push(
+                          <p key={`para-${pIndex}-${parts.length}`} style={{ 
+                            marginBottom: '1.25rem', 
+                            marginTop: 0, 
+                            textAlign: 'left' 
+                          }}>
+                            {text}
+                          </p>
+                        );
+                      }
+                      currentParagraph = [];
+                    }
+                  };
+                  
+                  const flushList = () => {
+                    if (currentList.length > 0) {
+                      parts.push(
+                        <ul key={`list-${pIndex}-${parts.length}`} style={{ 
+                          marginBottom: '1.25rem', 
+                          marginTop: 0,
+                          paddingLeft: '1.5rem',
+                          listStyleType: 'disc',
+                          textAlign: 'left',
+                        }}>
+                          {currentList.map((item, itemIndex) => (
+                            <li key={itemIndex} style={{ 
+                              marginBottom: '0.5rem', 
+                              textAlign: 'left' 
+                            }}>
+                              {item}
+                            </li>
+                          ))}
+                        </ul>
+                      );
+                      currentList = [];
+                    }
+                  };
+                  
+                  lines.forEach((line) => {
+                    // Check if line is a list item (starts with dash, asterisk, or bullet)
+                    if (line.match(/^[-*•]\s+/)) {
+                      flushParagraph();
+                      const itemText = line.replace(/^[-*•]\s+/, '').trim();
+                      if (itemText) {
+                        currentList.push(itemText);
+                      }
+                    } else {
+                      flushList();
+                      if (line.trim()) {
+                        currentParagraph.push(line);
+                      }
+                    }
+                  });
+                  
+                  // Flush remaining content
+                  flushParagraph();
+                  flushList();
+                  
+                  elements.push(...parts);
+                });
+                
+                return elements;
+              })()}
             </div>
           </div>
 
