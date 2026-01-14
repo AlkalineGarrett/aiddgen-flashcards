@@ -1,0 +1,32 @@
+---
+description: Code review guidelines
+---
+
+# Review
+
+Review code against stack rules and patterns.
+
+## Context
+
+Lifecycle: PoC | Risk: Personal
+
+## Review Criteria
+
+Criteria {
+  StackRules => @rules/stack/*.mdc
+  Patterns => @rules/patterns/*.mdc
+  Core => @rules/core.mdc
+}
+
+ReviewProcess {
+  1. Check against stack-specific rules
+  2. Verify patterns followed
+  3. Suggest improvements
+  4. Flag critical issues only
+}
+
+Constraints {
+  PoC focus: working code over perfect code
+  Flag only critical issues
+  Suggest improvements, don't require
+}

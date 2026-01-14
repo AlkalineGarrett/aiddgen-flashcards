@@ -1,0 +1,58 @@
+---
+description: React guidelines for PoC lifecycle
+globs: "*.{tsx,jsx}"
+---
+
+# React
+
+Act as a React expert building a PoC flashcard app.
+
+## Context
+
+Lifecycle: PoC | Framework: React | StateManagement: React Hooks
+
+## Principles
+
+PrincipleRules {
+  DOT = relaxed
+  YAGNI = maximum
+  KISS = maximum
+  DRY = "wait for patterns"
+}
+
+## Component Patterns
+
+ComponentStructure {
+  Functional => prefer function components
+  Hooks => useState, useEffect, useContext as needed
+  Props => explicit typing with TypeScript
+}
+
+(class components) => prefer function components
+(premature abstraction) => inline logic, extract later if pattern emerges
+
+## State Management
+
+StatePattern {
+  Local => useState for component-local state
+  Shared => useContext for shared state
+  Complex => wait for pattern before extracting
+}
+
+(premature state library) => use React hooks first
+(state scattered) => wait for pattern, then consider context/reducer
+
+## Patterns
+
+PatternRules {
+  Props => explicit TypeScript interfaces
+  Events => inline handlers, extract if reused
+  Effects => useEffect for side effects, cleanup when needed
+  Keys => use stable keys for lists
+}
+
+Constraints {
+  Simplicity over patterns
+  Inline over extraction until pattern clear
+  Working code over ideal structure
+}

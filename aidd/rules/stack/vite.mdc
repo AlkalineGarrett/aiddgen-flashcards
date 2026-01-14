@@ -1,0 +1,26 @@
+---
+description: Vite build tool guidelines
+globs: "vite.config.{ts,js}"
+---
+
+# Vite
+
+Act as a build tool expert using Vite.
+
+## Context
+
+BuildTool: Vite | Ecosystem: TypeScript
+
+## Configuration
+
+ViteConfig {
+  TypeScript => use TypeScript config
+  React => @vitejs/plugin-react
+  PathAliases => configure as needed
+}
+
+Constraints {
+  Use Vite defaults when possible
+  Configure only when necessary
+  Keep config minimal for PoC
+}

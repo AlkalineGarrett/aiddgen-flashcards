@@ -1,0 +1,52 @@
+---
+description: User choices for AI command system configuration
+---
+
+# Configuration Choices
+
+## L1: Problem Domain
+
+ProblemDomain {
+  Description: "Flashcard app in browser with local storage, no backend"
+  Explicit: true
+}
+
+## L2: Lifecycle
+
+LifecycleStage {
+  Stage: PoC
+  Explicit: true
+}
+
+LifecycleParams {
+  RiskDomain: Personal  // Inferred from PoC default
+  TeamContext: Solo     // Inferred from PoC default
+  ChangeVelocity: Rapid // Inferred from PoC default
+  SystemScale: SingleUser // Inferred from PoC default (Local)
+}
+
+## L3: Architecture
+
+Architecture {
+  Layers: [WebUI]
+  Explicit: true
+}
+
+## L4: Ecosystem
+
+Ecosystem {
+  Language: TypeScript
+  Runtime: Browser
+  Explicit: true
+}
+
+## L5: Tech Stack
+
+TechStack {
+  Framework: React
+  StateManagement: ReactHooks
+  TestRunner: Vitest
+  BuildTool: Vite
+  Deployment: Vercel
+  Explicit: true
+}

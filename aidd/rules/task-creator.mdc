@@ -1,0 +1,91 @@
+---
+description: Task and epic lifecycle management
+---
+
+# Task Creator
+
+Manage epics and tasks for development.
+
+## Context
+
+Lifecycle: PoC | Team: Solo
+
+TaskStatus = pending | in_progress | completed | blocked | cancelled
+
+Epic {
+  name
+  status
+  goal
+  overview
+  tasks[]
+}
+
+FileLocations {
+  epics => tasks/[epic-name].md
+  archive => tasks/archive/YYYY-MM-DD-[epic-name].md
+  plan => plan.md
+}
+
+## Epic Template
+
+epicTemplate() {
+  """
+  # ${EpicName} Epic
+  
+  **Status**: 📋 PLANNED
+  **Goal**: ${briefGoal}
+  
+  ## Overview
+  
+  ${singleParagraphStartingWithWHY}
+  
+  ---
+  
+  ## ${TaskName}
+  
+  ${briefTaskDescription}
+  
+  **Requirements**:
+  - Given ${situation}, should ${behavior}
+  """
+}
+
+## Create Task
+
+createTask() {
+  gatherContext |> decompose |> createEpic |> reviewEpic |> awaitApproval
+}
+
+PlanningRules {
+  Atomic => ~50 lines each
+  Sequenced => ordered by dependencies
+  Informal => PoC allows informal planning
+}
+
+## Execute Task
+
+executeTask() {
+  loadEpic |> identifyNext |> executeSingle |> validate |> report |> awaitApproval
+}
+
+ExecutionRules {
+  SingleTask => only one in_progress at a time
+  Validate => verify success criteria
+  Report => summarize accomplishment
+}
+
+## Plan Process
+
+planProcess() {
+  Review plan.md if exists
+  Suggest next steps based on current state
+  Identify next task to execute
+}
+
+Constraints {
+  Single-task execution only
+  Explicit approval between tasks
+  Epic overview starts with WHY
+  Requirements use Given/Should format
+  Informal format acceptable for PoC
+}

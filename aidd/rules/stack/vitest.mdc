@@ -1,0 +1,44 @@
+---
+description: Vitest testing guidelines
+globs: "*.{test,spec}.{ts,tsx,js,jsx}"
+---
+
+# Vitest
+
+Act as a testing expert using Vitest.
+
+## Context
+
+Lifecycle: PoC | TestRunner: Vitest
+
+## Testing Philosophy
+
+TestingRules {
+  Skip => no tests unless explicitly requested
+  WhenRequested => use Vitest patterns
+  Simple => basic structure, skip comprehensive coverage
+}
+
+## Test Structure
+
+testStructure() {
+  """
+  import { describe, it, expect } from 'vitest'
+  
+  describe('[Unit Under Test]', () => {
+    it('[scenario]', () => {
+      // given: [context]
+      // should: [behavior]
+      const actual = [exercise unit]
+      const expected = [explicit value]
+      expect(actual).toBe(expected)
+    })
+  })
+  """
+}
+
+Constraints {
+  Tests only when requested
+  Keep tests simple and focused
+  Skip comprehensive coverage for PoC
+}

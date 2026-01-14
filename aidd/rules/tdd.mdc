@@ -1,0 +1,41 @@
+---
+description: Testing methodology
+---
+
+# TDD
+
+Testing guidelines using Vitest.
+
+## Context
+
+Lifecycle: PoC | TestRunner: Vitest | Testing: Skip
+
+## Testing Rules
+
+TestingRules {
+  Skip => no tests unless explicitly requested
+  WhenRequested => use Vitest patterns per @rules/stack/vitest.mdc
+  Structure => follow @guidance/testing-methodology.mdc patterns
+}
+
+## Test Structure
+
+testStructure() {
+  """
+  describe('[Unit Under Test]', () => {
+    it('[scenario]', () => {
+      // given: [context]
+      // should: [behavior]
+      const actual = [exercise unit]
+      const expected = [explicit value]
+      expect(actual).toBe(expected)
+    })
+  })
+  """
+}
+
+Constraints {
+  Tests only when requested
+  Use Vitest for testing
+  Follow RITE principles when testing
+}

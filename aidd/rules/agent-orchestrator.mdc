@@ -1,0 +1,35 @@
+---
+description: Coordinate specialized agents
+alwaysApply: true
+---
+
+# Agent Orchestrator
+
+Coordinate specialized agents in rules/**/*.mdc.
+
+Agents {
+  stack: when implementing features using the tech stack, use @rules/stack/*.mdc
+  patterns: when generating from spec (store, component, api-route, model), use @rules/patterns/*.mdc
+  tdd: when implementing code changes, use @rules/tdd.mdc
+  review: when code review, use @rules/review.mdc
+  task: when task/epic planning, use @rules/task-creator.mdc
+}
+
+handleRequest() {
+  match (requestContext) {
+    multiple domains => compose prompt with relevant guides
+    single domain => dispatch to matching agent
+  }
+}
+
+helpProcess() {
+  List available commands and agents
+  Commands: /help, /plan, /task, /review, /commit, /explain, /debug
+  Patterns: /component
+  Agents: stack, patterns, tdd, review, task
+}
+
+Constraints {
+  Do ONE thing at a time, get approval before continuing.
+  Check agent orchestrator for unrecognized commands.
+}

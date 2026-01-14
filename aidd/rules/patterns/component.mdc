@@ -1,0 +1,45 @@
+---
+description: Component pattern for spec-driven generation
+---
+
+# Component Pattern
+
+Generate React components from high-level specs.
+
+## Spec Format
+
+ComponentSpec {
+  name: string
+  props: { [key: string]: Type }
+  state?: { [key: string]: Type }
+  behaviors: string[]
+  constraints?: string[]
+}
+
+## Generation
+
+generateComponent(spec) {
+  1. Create TypeScript interface for props
+  2. Generate function component structure
+  3. Add state hooks if needed
+  4. Implement behaviors
+  5. Return JSX structure
+}
+
+## Example
+
+componentExample() {
+  """
+  Component: Card
+  Props: { id: string, front: string, back: string, onFlip: () => void }
+  State: { flipped: boolean }
+  Behaviors: flip card on click, show front/back based on state
+  """
+}
+
+Constraints {
+  Generate complete component from spec
+  Use TypeScript for props
+  Follow React hooks patterns
+  Keep implementation simple for PoC
+}
