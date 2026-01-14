@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '../types/card';
 import { loadCards, saveCards } from './storage';
-import { getDeckGenerator } from './flashcardGenerator';
 import { DeckId } from './deckStorage';
 
 /**
@@ -16,18 +15,7 @@ export function useCardStorage(deckId: DeckId) {
     setIsLoading(true);
     const loaded = loadCards(deckId);
     
-    // Initialize deck with generated flashcards if empty
-    if (loaded.length === 0) {
-      const generator = getDeckGenerator(deckId);
-      const initialCards = generator();
-      if (initialCards.length > 0) {
-        setCards(initialCards);
-        saveCards(deckId, initialCards);
-        setIsLoading(false);
-        return;
-      }
-    }
-    
+    // Don't initialize cards by default - users should add them topic by topic after reading
     setCards(loaded);
     setIsLoading(false);
   }, [deckId]);

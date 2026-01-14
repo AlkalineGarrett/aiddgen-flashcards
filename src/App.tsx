@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
 import { Study } from './components/Study';
 import { CardManagement } from './components/CardManagement';
+import { TopicReader } from './components/TopicReader';
 import { DeckSelection } from './components/DeckSelection';
 import { setSelectedDeck, clearSelectedDeck, DeckId, getDeckInfo } from './utils/deckStorage';
+import { clearAllDeckState } from './utils/topicConfirmation';
+import { clearDeck } from './utils/storage';
 
 type Route = 
   | { type: 'deck-selection' }
   | { type: 'study'; deckId: DeckId }
-  | { type: 'manage'; deckId: DeckId };
+  | { type: 'manage'; deckId: DeckId }
+  | { type: 'read'; deckId: DeckId };
 
 /**
  * Parse the current URL path into a route
@@ -19,7 +23,7 @@ function parseRoute(pathname: string): Route {
     return { type: 'deck-selection' };
   }
 
-  // Match /study/:deckId or /manage/:deckId
+  // Match /study/:deckId, /manage/:deckId, or /read/:deckId
   const studyMatch = path.match(/^\/study\/(aidd|aiddgen)$/);
   if (studyMatch) {
     return { type: 'study', deckId: studyMatch[1] as DeckId };
@@ -28,6 +32,11 @@ function parseRoute(pathname: string): Route {
   const manageMatch = path.match(/^\/manage\/(aidd|aiddgen)$/);
   if (manageMatch) {
     return { type: 'manage', deckId: manageMatch[1] as DeckId };
+  }
+
+  const readMatch = path.match(/^\/read\/(aidd|aiddgen)$/);
+  if (readMatch) {
+    return { type: 'read', deckId: readMatch[1] as DeckId };
   }
 
   // Default to deck selection for unknown paths
@@ -42,6 +51,8 @@ function getRoutePath(route: Route): string {
     return '/';
   } else if (route.type === 'study') {
     return `/study/${route.deckId}`;
+  } else if (route.type === 'read') {
+    return `/read/${route.deckId}`;
   } else {
     return `/manage/${route.deckId}`;
   }
@@ -91,7 +102,7 @@ function App() {
 
   const handleDeckSelect = (deckId: DeckId) => {
     setSelectedDeck(deckId);
-    navigate({ type: 'study', deckId });
+    navigate({ type: 'read', deckId });
   };
 
   const handleDeckSwitch = () => {
@@ -99,9 +110,32 @@ function App() {
     navigate({ type: 'deck-selection' });
   };
 
-  const handleViewSwitch = (view: 'study' | 'management', deckId: DeckId) => {
+  const handleClearAllData = (deckId: DeckId) => {
+    const deckInfo = getDeckInfo(deckId);
+    const confirmed = window.confirm(
+      `Are you sure you want to clear all data for "${deckInfo.name}"?\n\n` +
+      `This will delete:\n` +
+      `• All flashcards\n` +
+      `• All read/confirmed topic progress\n` +
+      `• All study progress\n\n` +
+      `This action cannot be undone.`
+    );
+    
+    if (confirmed) {
+      // Clear all state
+      clearDeck(deckId);
+      clearAllDeckState(deckId);
+      
+      // Reload the page to refresh all components
+      window.location.reload();
+    }
+  };
+
+  const handleViewSwitch = (view: 'study' | 'management' | 'read', deckId: DeckId) => {
     if (view === 'study') {
       navigate({ type: 'study', deckId });
+    } else if (view === 'read') {
+      navigate({ type: 'read', deckId });
     } else {
       navigate({ type: 'manage', deckId });
     }
@@ -124,14 +158,28 @@ function App() {
 
   const deckId = route.deckId;
   const deckInfo = getDeckInfo(deckId);
-  const currentView = route.type === 'study' ? 'study' : 'management';
+  const currentView = route.type === 'study' ? 'study' : route.type === 'read' ? 'read' : 'management';
 
   return (
     <div>
       <header style={{ textAlign: 'center', padding: '1rem', borderBottom: '1px solid #ccc' }}>
         <h1>Aiddgen Flashcard App</h1>
         <p>Studying: {deckInfo.name}</p>
-        <nav style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center' }}>
+        <nav style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
+          <button
+            onClick={() => handleViewSwitch('read', deckId)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: currentView === 'read' ? '#007bff' : '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: '500',
+            }}
+          >
+            Read Topics
+          </button>
           <button
             onClick={() => handleViewSwitch('study', deckId)}
             style={{
@@ -176,10 +224,28 @@ function App() {
           >
             Switch Deck
           </button>
+          <button
+            onClick={() => handleClearAllData(deckId)}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#dc3545',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: '500',
+              marginLeft: '1rem',
+            }}
+            title="Clear all data for this deck"
+          >
+            Clear All Data
+          </button>
         </nav>
       </header>
       <main>
-        {currentView === 'study' ? (
+        {currentView === 'read' ? (
+          <TopicReader deckId={deckId} />
+        ) : currentView === 'study' ? (
           <Study deckId={deckId} />
         ) : (
           <CardManagement deckId={deckId} />
