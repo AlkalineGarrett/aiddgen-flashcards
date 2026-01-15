@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DeckId, getAllDecks, setSelectedDeck } from '../utils/deckStorage';
 import { loadCards } from '../utils/storage';
+import './components.css';
 
 interface DeckSelectionProps {
   onDeckSelect: (deckId: DeckId) => void;
@@ -42,70 +43,31 @@ export function DeckSelection({ onDeckSelect }: DeckSelectionProps) {
   const decks = getAllDecks();
 
   return (
-    <div
-      style={{
-        maxWidth: '800px',
-        margin: '0 auto',
-        padding: '2rem',
-        textAlign: 'center',
-      }}
-    >
-      <h1 style={{ marginBottom: '0.5rem' }}>Choose a Deck</h1>
-      <p style={{ color: '#666', marginBottom: '2rem' }}>
+    <div className="deck-selection-container">
+      <h1 className="deck-selection-title">Choose a Deck</h1>
+      <p className="deck-selection-subtitle">
         Select which deck you'd like to study
       </p>
 
       {isLoading ? (
         <div>Loading deck information...</div>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-            gap: '1.5rem',
-            marginTop: '2rem',
-          }}
-        >
+        <div className="deck-selection-grid">
           {decks.map((deck) => {
             const count = cardCounts[deck.id];
             return (
               <div
                 key={deck.id}
                 onClick={() => handleDeckSelect(deck.id)}
-                style={{
-                  border: '2px solid #ddd',
-                  borderRadius: '8px',
-                  padding: '2rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  backgroundColor: '#fff',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = '#007bff';
-                  e.currentTarget.style.boxShadow = '0 4px 8px rgba(0,0,0,0.15)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = '#ddd';
-                  e.currentTarget.style.boxShadow = '0 2px 4px rgba(0,0,0,0.1)';
-                }}
+                className="deck-selection-card"
               >
-                <h2 style={{ marginTop: 0, marginBottom: '0.5rem', color: '#007bff' }}>
+                <h2 className="deck-selection-card-title">
                   {deck.name}
                 </h2>
-                <p style={{ color: '#666', marginBottom: '1rem', fontSize: '0.95rem' }}>
+                <p className="deck-selection-card-description">
                   {deck.description}
                 </p>
-                <div
-                  style={{
-                    marginTop: '1rem',
-                    padding: '0.5rem',
-                    backgroundColor: '#f8f9fa',
-                    borderRadius: '4px',
-                    fontSize: '0.9rem',
-                    color: '#495057',
-                  }}
-                >
+                <div className="deck-selection-card-count">
                   {count} {count === 1 ? 'card' : 'cards'}
                 </div>
               </div>

@@ -1,6 +1,7 @@
 import { Card } from '../types/card';
 import { getCardStatus, getStatusColor, getStatusLabel } from '../utils/cardStatus';
 import { isCardDue, getDaysUntilDue } from '../utils/fsrs';
+import './components.css';
 
 interface CardDetailProps {
   card: Card;
@@ -25,59 +26,30 @@ export function CardDetail({ card, onBack, onReset }: CardDetailProps) {
     : null;
 
   return (
-    <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem' }}>
+    <div className="card-detail-container">
       <button
         onClick={onBack}
-        style={{
-          marginBottom: '1rem',
-          padding: '0.5rem 1rem',
-          backgroundColor: '#6c757d',
-          color: 'white',
-          border: 'none',
-          borderRadius: '4px',
-          cursor: 'pointer',
-        }}
+        className="card-detail-back-button"
       >
         ← Back to List
       </button>
 
-      <div
-        style={{
-          border: '2px solid #ddd',
-          borderRadius: '8px',
-          padding: '2rem',
-          backgroundColor: '#f9f9f9',
-        }}
-      >
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0 }}>Card Details</h3>
+      <div className="card-detail-card">
+        <div className="card-detail-header">
+          <div className="card-detail-header-row">
+            <h3 className="card-detail-title">Card Details</h3>
             <span
-              style={{
-                backgroundColor: statusColor,
-                color: 'white',
-                padding: '0.5rem 1rem',
-                borderRadius: '4px',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-              }}
+              className="card-detail-status-badge"
+              style={{ '--status-color': statusColor } as React.CSSProperties}
             >
               {getStatusLabel(status)}
             </span>
           </div>
 
           {card.tags && card.tags.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
+            <div className="card-detail-tags">
               {card.tags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    backgroundColor: '#e9ecef',
-                    padding: '0.25rem 0.5rem',
-                    borderRadius: '4px',
-                    fontSize: '0.875rem',
-                  }}
-                >
+                <span key={tag} className="card-detail-tag">
                   {tag}
                 </span>
               ))}
@@ -85,26 +57,20 @@ export function CardDetail({ card, onBack, onReset }: CardDetailProps) {
           )}
         </div>
 
-        <div style={{ marginBottom: '1.5rem' }}>
-          <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Front:</div>
-          <div style={{ padding: '1rem', backgroundColor: 'white', borderRadius: '4px', marginBottom: '1rem' }}>
+        <div className="card-detail-content">
+          <div className="card-detail-label">Front:</div>
+          <div className="card-detail-side">
             {card.front}
           </div>
-          <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>Back:</div>
-          <div style={{ padding: '1rem', backgroundColor: 'white', borderRadius: '4px' }}>
+          <div className="card-detail-label">Back:</div>
+          <div className="card-detail-side">
             {card.back}
           </div>
         </div>
 
-        <div
-          style={{
-            borderTop: '1px solid #ddd',
-            paddingTop: '1.5rem',
-            marginTop: '1.5rem',
-          }}
-        >
-          <h4 style={{ marginTop: 0, marginBottom: '1rem' }}>Card State</h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginBottom: '1rem' }}>
+        <div className="card-detail-state">
+          <h4 className="card-detail-state-title">Card State</h4>
+          <div className="card-detail-state-grid">
             <div>
               <strong>Review Count:</strong> {card.state.reviewCount}
             </div>
@@ -131,7 +97,7 @@ export function CardDetail({ card, onBack, onReset }: CardDetailProps) {
             <div>
               <strong>Status:</strong>{' '}
               {isDue ? (
-                <span style={{ color: '#dc3545', fontWeight: '500' }}>
+                <span className="card-detail-due-warning">
                   Due {Math.abs(daysUntilDue)} day{Math.abs(daysUntilDue) !== 1 ? 's' : ''} ago
                 </span>
               ) : (
@@ -143,22 +109,14 @@ export function CardDetail({ card, onBack, onReset }: CardDetailProps) {
           </div>
         </div>
 
-        <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid #ddd' }}>
+        <div className="card-detail-actions">
           <button
             onClick={onReset}
-            style={{
-              padding: '0.75rem 1.5rem',
-              backgroundColor: '#dc3545',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: '500',
-            }}
+            className="card-detail-reset-button"
           >
             Reset Card State
           </button>
-          <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.5rem' }}>
+          <div className="card-detail-reset-help">
             This will reset the card to its initial state (new card).
           </div>
         </div>

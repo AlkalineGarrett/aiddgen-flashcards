@@ -4,6 +4,8 @@ interface StudySession {
   timeSpent: number; // in seconds
 }
 
+import './components.css';
+
 interface StudyStatsProps {
   session: StudySession;
 }
@@ -16,14 +18,7 @@ export function StudyStats({ session }: StudyStatsProps) {
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: '1rem',
-        fontSize: '0.875rem',
-        color: '#666',
-      }}
-    >
+    <div className="study-stats-container">
       <span>
         <strong>Cards:</strong> {session.cardsReviewed}
       </span>

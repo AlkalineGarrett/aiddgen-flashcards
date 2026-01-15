@@ -1,14 +1,20 @@
 import { useState, useEffect, useMemo } from 'react';
-import { generateTopicContent } from '../utils/topicContent';
+import { generateTopicContent, getCardPrimaryTopic, formatTopicName } from '../utils/topicContent';
 import { useCardStorage } from '../utils/useStorage';
 import { DeckId, getDeckInfo } from '../utils/deckStorage';
 import { Topic } from '../types/topic';
+import { Card } from '../types/card';
 import {
   getConfirmedTopics,
   confirmTopic,
   isTopicConfirmed,
   getCardsForTopic,
 } from '../utils/topicConfirmation';
+import { getDeckGenerator } from '../utils/flashcardGenerator';
+import { generateTopicProse } from '../utils/topicProse';
+import { Quiz, QuizResult } from './Quiz';
+import { QuizSummary } from './QuizSummary';
+import './components.css';
 
 interface TopicReaderProps {
   deckId: DeckId;
@@ -21,14 +27,60 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   const [confirmedTopics, setConfirmedTopics] = useState<Set<string>>(new Set());
   const [lastAddedCount, setLastAddedCount] = useState<number | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
+  const [quizMode, setQuizMode] = useState<'idle' | 'in-progress' | 'completed'>('idle');
+  const [quizResult, setQuizResult] = useState<QuizResult | null>(null);
+  const [previousIncorrectCardIds, setPreviousIncorrectCardIds] = useState<Set<string>>(new Set());
+  const [quizInitialCards, setQuizInitialCards] = useState<Card[] | undefined>(undefined);
+  const [quizTopicId, setQuizTopicId] = useState<string | undefined>(undefined);
 
   const deckInfo = useMemo(() => getDeckInfo(deckId), [deckId]);
 
   // Load topic content (only topics with cards not yet in storage)
+  // But also include confirmed topics even if they have no new cards (so they can be re-read)
   const topicContent = useMemo(() => {
     if (isLoading) return null;
-    return generateTopicContent(deckId, cards);
-  }, [deckId, cards, isLoading]);
+    const generated = generateTopicContent(deckId, cards);
+    
+    // Add back confirmed topics that were filtered out (have no new cards)
+    if (confirmedTopics.size > 0) {
+      const generator = getDeckGenerator(deckId);
+      const allCards = generator();
+      const topicMap = new Map<string, Card[]>();
+      
+      // Group all cards by topic
+      allCards.forEach(card => {
+        const primaryTopic = getCardPrimaryTopic(card);
+        if (primaryTopic) {
+          if (!topicMap.has(primaryTopic)) {
+            topicMap.set(primaryTopic, []);
+          }
+          topicMap.get(primaryTopic)!.push(card);
+        }
+      });
+      
+      // For each confirmed topic, check if it's already in generated topics
+      confirmedTopics.forEach(topicId => {
+        const exists = generated.topics.some(t => t.id === topicId);
+        if (!exists && topicMap.has(topicId)) {
+          // Topic was filtered out but is confirmed - add it back with empty cards array
+          const prose = generateTopicProse(topicId, deckId);
+          generated.topics.push({
+            id: topicId,
+            name: topicId,
+            displayName: formatTopicName(topicId),
+            cards: [], // No new cards, but keep it visible
+            prose,
+          });
+        }
+      });
+      
+      // Re-sort after adding confirmed topics
+      generated.topics.sort((a, b) => a.displayName.localeCompare(b.displayName));
+      generated.totalTopics = generated.topics.length;
+    }
+    
+    return generated;
+  }, [deckId, cards, isLoading, confirmedTopics]);
 
   // Load read topics from localStorage on mount
   useEffect(() => {
@@ -83,35 +135,55 @@ export function TopicReader({ deckId }: TopicReaderProps) {
     }
   }, [showSuccessMessage]);
 
+  // Ensure currentTopicIndex is within bounds when topicContent changes
+  useEffect(() => {
+    if (topicContent && topicContent.topics.length > 0) {
+      if (currentTopicIndex >= topicContent.topics.length) {
+        // Index out of bounds, reset to first topic
+        setCurrentTopicIndex(0);
+        if (topicContent.topics[0]) {
+          localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[0].id);
+        }
+      }
+    }
+  }, [topicContent, currentTopicIndex, deckId]);
+
   const currentTopic: Topic | null = topicContent?.topics[currentTopicIndex] || null;
 
-  const handleMarkAsRead = () => {
-    if (currentTopic) {
-      setReadTopics((prev) => new Set([...prev, currentTopic.id]));
-      // Save last read topic
-      localStorage.setItem(`last-read-topic-${deckId}`, currentTopic.id);
-    }
-  };
-
-  const handleConfirmAndAddFlashcards = () => {
+  // Load previous quiz results for re-quiz functionality
+  useEffect(() => {
     if (!currentTopic) return;
+    
+    const stored = localStorage.getItem(`quiz-results-${deckId}-${currentTopic.id}`);
+    if (stored) {
+      try {
+        const result = JSON.parse(stored) as QuizResult;
+        setPreviousIncorrectCardIds(new Set(result.incorrectCardIds));
+      } catch (e) {
+        // Ignore parse errors
+      }
+    } else {
+      setPreviousIncorrectCardIds(new Set());
+    }
+  }, [deckId, currentTopic?.id]);
+
+  const handleQuiz = () => {
+    if (!currentTopic) return;
+
+    // Mark topic as read
+    setReadTopics((prev) => new Set([...prev, currentTopic.id]));
 
     // Get cards for this topic that don't already exist
     const cardsToAdd = getCardsForTopic(deckId, currentTopic.id, cards);
     
-    if (cardsToAdd.length === 0) {
-      // No new cards to add, just confirm the topic
-      confirmTopic(deckId, currentTopic.id);
-      setConfirmedTopics((prev) => new Set([...prev, currentTopic.id]));
-      // Save last read topic
-      localStorage.setItem(`last-read-topic-${deckId}`, currentTopic.id);
-      return;
+    // Add all cards if any need to be added
+    if (cardsToAdd.length > 0) {
+      cardsToAdd.forEach((card) => {
+        addCard(card);
+      });
+      setLastAddedCount(cardsToAdd.length);
+      setShowSuccessMessage(true);
     }
-
-    // Add all cards
-    cardsToAdd.forEach((card) => {
-      addCard(card);
-    });
 
     // Confirm the topic
     confirmTopic(deckId, currentTopic.id);
@@ -120,9 +192,77 @@ export function TopicReader({ deckId }: TopicReaderProps) {
     // Save last read topic
     localStorage.setItem(`last-read-topic-${deckId}`, currentTopic.id);
 
-    // Show success feedback
-    setLastAddedCount(cardsToAdd.length);
-    setShowSuccessMessage(true);
+    // Prepare cards to pass to quiz (current cards + newly added cards)
+    // This ensures quiz sees the cards immediately even before state updates
+    const allCardsForQuiz = [...cards, ...cardsToAdd];
+    setQuizInitialCards(allCardsForQuiz);
+    // Store the topic ID used when starting the quiz (in case currentTopic changes)
+    setQuizTopicId(currentTopic.id);
+
+    // Start quiz session
+    setQuizMode('in-progress');
+    setQuizResult(null);
+  };
+
+  const handleQuizComplete = (result: QuizResult) => {
+    // Save quiz results
+    if (currentTopic) {
+      // If all cards were correct, ensure incorrect card IDs are cleared
+      const resultToSave = {
+        ...result,
+        incorrectCardIds: result.incorrectCards === 0 ? [] : result.incorrectCardIds,
+      };
+      localStorage.setItem(
+        `quiz-results-${deckId}-${currentTopic.id}`,
+        JSON.stringify(resultToSave)
+      );
+    }
+    
+    setQuizResult(result);
+    setQuizMode('completed');
+    
+    // Update incorrect card IDs for next re-quiz
+    // If all cards were correct, clear the incorrect list
+    if (result.incorrectCards === 0) {
+      setPreviousIncorrectCardIds(new Set());
+    } else {
+      setPreviousIncorrectCardIds(new Set(result.incorrectCardIds));
+    }
+  };
+
+  const handleNextAfterQuiz = () => {
+    setQuizMode('idle');
+    setQuizResult(null);
+    setQuizInitialCards(undefined);
+    setQuizTopicId(undefined);
+    handleNext();
+  };
+
+  const handleReadAgain = () => {
+    // Store the topic ID before clearing quiz state
+    const topicIdToRestore = quizTopicId;
+    
+    setQuizMode('idle');
+    setQuizResult(null);
+    setQuizInitialCards(undefined);
+    setQuizTopicId(undefined);
+    
+    // Restore the topic by finding it in topicContent
+    if (topicIdToRestore && topicContent) {
+      const topicIndex = topicContent.topics.findIndex(t => t.id === topicIdToRestore);
+      if (topicIndex !== -1) {
+        // Topic found, set the index
+        setCurrentTopicIndex(topicIndex);
+        localStorage.setItem(`last-read-topic-${deckId}`, topicIdToRestore);
+      } else {
+        // Topic was filtered out (all cards in storage)
+        // Reset to first topic since the quiz topic is no longer available
+        if (topicContent.topics.length > 0) {
+          setCurrentTopicIndex(0);
+          localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[0].id);
+        }
+      }
+    }
   };
 
   const handleNext = () => {
@@ -161,7 +301,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
 
   if (!topicContent || topicContent.topics.length === 0) {
     return (
-      <div style={{ textAlign: 'center', padding: '2rem' }}>
+      <div className="topic-reader-empty">
         <h2>🎉 All Topics Read!</h2>
         <p>All available topics have been read in {deckInfo.name}</p>
       </div>
@@ -174,42 +314,87 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   const confirmedCount = confirmedTopics.size;
   const totalTopics = topicContent.topics.length;
 
+  const handleCancelQuiz = () => {
+    setQuizMode('idle');
+    setQuizResult(null);
+    setQuizInitialCards(undefined);
+    setQuizTopicId(undefined);
+    // Stay on current topic when canceling quiz
+  };
+
+  // Show quiz if in progress
+  if (quizMode === 'in-progress' && quizTopicId) {
+    const shouldFilterIncorrect = previousIncorrectCardIds.size > 0;
+    
+    // Use the topic ID that was stored when quiz started (quizTopicId)
+    // This prevents issues if currentTopic changes due to topicContent regeneration
+    const topicIdForQuiz = quizTopicId;
+    
+    // Calculate cards for quiz: use quizInitialCards if set, otherwise compute from stored topic
+    let cardsToPass: Card[] | undefined;
+    if (quizInitialCards !== undefined && quizInitialCards.length > 0) {
+      cardsToPass = quizInitialCards;
+    } else {
+      // Fallback: get cards for the stored topic directly
+      const cardsForTopic = getCardsForTopic(deckId, topicIdForQuiz, cards);
+      const allCards = [...cards, ...cardsForTopic];
+      // Deduplicate by card ID just in case
+      const uniqueCards = Array.from(
+        new Map(allCards.map(card => [card.id, card])).values()
+      );
+      cardsToPass = uniqueCards.length > 0 ? uniqueCards : undefined;
+    }
+    
+    return (
+      <Quiz
+        deckId={deckId}
+        topicId={topicIdForQuiz}
+        onComplete={handleQuizComplete}
+        onCancel={handleCancelQuiz}
+        filterIncorrectOnly={shouldFilterIncorrect}
+        previousIncorrectCardIds={Array.from(previousIncorrectCardIds)}
+        initialCards={cardsToPass}
+      />
+    );
+  }
+
+  // Show quiz summary if completed
+  if (quizMode === 'completed' && quizResult && quizTopicId) {
+    // Find current topic index for navigation purposes
+    const currentTopicIndexForNavigation = topicContent?.topics.findIndex(t => t.id === quizTopicId) ?? currentTopicIndex;
+    const canGoToNext = topicContent && currentTopicIndexForNavigation < topicContent.topics.length - 1;
+    return (
+      <QuizSummary
+        result={quizResult}
+        onReadAgain={handleReadAgain}
+        onNextTopic={handleNextAfterQuiz}
+        canGoToNext={canGoToNext}
+      />
+    );
+  }
+
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '2rem' }}>
+    <div className="topic-reader-container">
       {/* Header with progress */}
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ fontSize: '0.875rem', color: '#666', marginBottom: '0.5rem' }}>
+      <div className="topic-reader-header">
+        <div className="topic-reader-header-text">
           Reading: <strong>{deckInfo.name}</strong>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+        <div className="topic-reader-header-main">
           <div>
             <strong>Topic {currentTopicIndex + 1} of {totalTopics}</strong>
-            <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
+            <div className="topic-reader-header-stats">
               {readCount} read | {confirmedCount} confirmed
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+          <div className="topic-reader-badges">
             {isRead && (
-              <div style={{ 
-                padding: '0.5rem 1rem', 
-                backgroundColor: '#17a2b8', 
-                color: 'white', 
-                borderRadius: '4px',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-              }}>
+              <div className="topic-reader-badge topic-reader-badge-read">
                 ✓ Read
               </div>
             )}
             {isConfirmed && (
-              <div style={{ 
-                padding: '0.5rem 1rem', 
-                backgroundColor: '#28a745', 
-                color: 'white', 
-                borderRadius: '4px',
-                fontSize: '0.875rem',
-                fontWeight: '500',
-              }}>
+              <div className="topic-reader-badge topic-reader-badge-confirmed">
                 ✓ Confirmed
               </div>
             )}
@@ -218,49 +403,37 @@ export function TopicReader({ deckId }: TopicReaderProps) {
       </div>
 
       {/* Topic selection (compact view) */}
-      <div style={{ marginBottom: '1.5rem', padding: '1rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-          <div style={{ fontSize: '0.875rem', color: '#666', fontWeight: '500' }}>
+      <div className="topic-reader-selection">
+        <div className="topic-reader-selection-header">
+          <div className="topic-reader-selection-title">
             Topics ({totalTopics} total):
           </div>
-          <div style={{ fontSize: '0.875rem', color: '#666' }}>
+          <div className="topic-reader-selection-progress">
             Progress: {Math.round(((readCount + confirmedCount) / (totalTopics * 2)) * 100)}%
           </div>
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="topic-reader-selection-list">
           {topicContent.topics.map((topic, index) => {
             const topicIsRead = readTopics.has(topic.id);
             const topicIsConfirmed = isTopicConfirmed(deckId, topic.id);
             const isCurrent = index === currentTopicIndex;
-            let bgColor = '#e0e0e0';
+            let buttonClass = 'topic-reader-topic-button topic-reader-topic-button-default';
             if (isCurrent) {
-              bgColor = '#007bff';
+              buttonClass = 'topic-reader-topic-button topic-reader-topic-button-current';
             } else if (topicIsConfirmed) {
-              bgColor = '#28a745';
+              buttonClass = 'topic-reader-topic-button topic-reader-topic-button-confirmed';
             } else if (topicIsRead) {
-              bgColor = '#17a2b8';
+              buttonClass = 'topic-reader-topic-button topic-reader-topic-button-read';
             }
             return (
               <button
                 key={topic.id}
                 onClick={() => handleTopicSelect(index)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  backgroundColor: bgColor,
-                  color: isCurrent ? 'white' : '#333',
-                  border: isCurrent ? '2px solid #0056b3' : 'none',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: isCurrent ? '600' : 'normal',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                }}
+                className={buttonClass}
                 title={`${topic.displayName} - ${topic.cards.length} card${topic.cards.length !== 1 ? 's' : ''}${topicIsConfirmed ? ' (Confirmed)' : topicIsRead ? ' (Read)' : ' (Unread)'}`}
               >
                 <span>{topic.displayName}</span>
-                <span style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                <span className="topic-reader-topic-count">
                   ({topic.cards.length})
                 </span>
                 {topicIsConfirmed && <span>✓</span>}
@@ -274,29 +447,17 @@ export function TopicReader({ deckId }: TopicReaderProps) {
       {/* Current topic content */}
       {currentTopic && (
         <div>
-          <div style={{ 
-            border: '2px solid #007bff', 
-            borderRadius: '8px', 
-            padding: '2rem',
-            backgroundColor: '#f9f9f9',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            marginBottom: '2rem',
-          }}>
-            <h2 style={{ marginTop: 0, marginBottom: '1.5rem', color: '#007bff' }}>
+          <div className="topic-reader-content-card">
+            <h2 className="topic-reader-content-title">
               {currentTopic.displayName}
             </h2>
             
-            <div style={{ marginBottom: '1.5rem', fontSize: '0.875rem', color: '#666' }}>
+            <div className="topic-reader-content-info">
               {currentTopic.cards.length} flashcard{currentTopic.cards.length !== 1 ? 's' : ''} will be generated when you confirm this topic
             </div>
 
             {/* Display prose content */}
-            <div style={{
-              fontSize: '1rem',
-              color: '#333',
-              lineHeight: '1.8',
-              textAlign: 'left',
-            }}>
+            <div className="topic-reader-content-prose">
               {(() => {
                 const paragraphs = currentTopic.prose.split('\n\n').filter(p => p.trim());
                 const elements: JSX.Element[] = [];
@@ -312,11 +473,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
                       const text = currentParagraph.join(' ');
                       if (text.trim()) {
                         parts.push(
-                          <p key={`para-${pIndex}-${parts.length}`} style={{ 
-                            marginBottom: '1.25rem', 
-                            marginTop: 0, 
-                            textAlign: 'left' 
-                          }}>
+                          <p key={`para-${pIndex}-${parts.length}`} className="topic-reader-prose-paragraph">
                             {text}
                           </p>
                         );
@@ -328,18 +485,9 @@ export function TopicReader({ deckId }: TopicReaderProps) {
                   const flushList = () => {
                     if (currentList.length > 0) {
                       parts.push(
-                        <ul key={`list-${pIndex}-${parts.length}`} style={{ 
-                          marginBottom: '1.25rem', 
-                          marginTop: 0,
-                          paddingLeft: '1.5rem',
-                          listStyleType: 'disc',
-                          textAlign: 'left',
-                        }}>
+                        <ul key={`list-${pIndex}-${parts.length}`} className="topic-reader-prose-list">
                           {currentList.map((item, itemIndex) => (
-                            <li key={itemIndex} style={{ 
-                              marginBottom: '0.5rem', 
-                              textAlign: 'left' 
-                            }}>
+                            <li key={itemIndex} className="topic-reader-prose-list-item">
                               {item}
                             </li>
                           ))}
@@ -379,83 +527,35 @@ export function TopicReader({ deckId }: TopicReaderProps) {
 
           {/* Success message */}
           {showSuccessMessage && lastAddedCount !== null && (
-            <div style={{
-              marginBottom: '1rem',
-              padding: '1rem',
-              backgroundColor: '#d4edda',
-              border: '1px solid #c3e6cb',
-              borderRadius: '4px',
-              color: '#155724',
-            }}>
+            <div className="topic-reader-success-message">
               ✓ Successfully added {lastAddedCount} flashcard{lastAddedCount !== 1 ? 's' : ''} to your deck!
             </div>
           )}
 
           {/* Action buttons */}
-          <div style={{ display: 'flex', gap: '1rem', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', gap: '1rem' }}>
+          <div className="topic-reader-actions">
+            <div className="topic-reader-nav-buttons">
               <button
                 onClick={handlePrevious}
                 disabled={currentTopicIndex === 0}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  backgroundColor: currentTopicIndex === 0 ? '#ccc' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentTopicIndex === 0 ? 'not-allowed' : 'pointer',
-                }}
+                className={`topic-reader-nav-button topic-reader-nav-button-primary ${currentTopicIndex === 0 ? 'topic-reader-nav-button-disabled' : ''}`}
               >
                 ← Previous
               </button>
               <button
                 onClick={handleNext}
                 disabled={currentTopicIndex >= topicContent.topics.length - 1}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  backgroundColor: currentTopicIndex >= topicContent.topics.length - 1 ? '#ccc' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: currentTopicIndex >= topicContent.topics.length - 1 ? 'not-allowed' : 'pointer',
-                }}
+                className={`topic-reader-nav-button topic-reader-nav-button-primary ${currentTopicIndex >= topicContent.topics.length - 1 ? 'topic-reader-nav-button-disabled' : ''}`}
               >
                 Next →
               </button>
             </div>
-            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+            <div className="topic-reader-action-buttons">
               <button
-                onClick={handleMarkAsRead}
-                disabled={isRead}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  fontSize: '1rem',
-                  backgroundColor: isRead ? '#17a2b8' : '#6c757d',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isRead ? 'default' : 'pointer',
-                }}
+                onClick={handleQuiz}
+                className="topic-reader-action-button"
               >
-                {isRead ? '✓ Read' : 'Mark as Read'}
-              </button>
-              <button
-                onClick={handleConfirmAndAddFlashcards}
-                disabled={isConfirmed}
-                style={{
-                  padding: '0.75rem 2rem',
-                  fontSize: '1rem',
-                  backgroundColor: isConfirmed ? '#28a745' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: isConfirmed ? 'default' : 'pointer',
-                  fontWeight: '500',
-                }}
-              >
-                {isConfirmed ? '✓ Confirmed' : 'Confirm & Add Flashcards'}
+                Quiz
               </button>
             </div>
           </div>

@@ -9,7 +9,7 @@ import { generateTopicProse } from './topicProse';
  * Primary topics are single words or the first part of compound tags
  * Examples: 'commands' from 'commands', 'choice' from 'choice-hierarchy'
  */
-function extractPrimaryTopic(tag: string): string | null {
+export function extractPrimaryTopic(tag: string): string | null {
   // Ignore deck tags
   if (tag === 'aidd' || tag === 'aiddgen') {
     return null;
@@ -25,7 +25,7 @@ function extractPrimaryTopic(tag: string): string | null {
  * Get the primary topic for a card
  * Uses the first non-deck tag as the primary topic
  */
-function getCardPrimaryTopic(card: Card): string | null {
+export function getCardPrimaryTopic(card: Card): string | null {
   if (!card.tags || card.tags.length === 0) {
     return null;
   }
@@ -64,7 +64,7 @@ function groupCardsByTopic(cards: Card[]): Map<string, Card[]> {
 /**
  * Format topic name for display
  */
-function formatTopicName(topicId: string): string {
+export function formatTopicName(topicId: string): string {
   // Convert kebab-case or snake_case to Title Case
   return topicId
     .split(/[-_]/)

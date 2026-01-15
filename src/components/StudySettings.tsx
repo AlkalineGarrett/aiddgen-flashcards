@@ -4,6 +4,7 @@ import {
   saveQueueConfig,
   updateMaxNewCardsPerDay,
 } from '../utils/reviewQueue';
+import './components.css';
 
 interface StudySettingsProps {
   onClose: () => void;
@@ -28,34 +29,17 @@ export function StudySettings({ onClose }: StudySettingsProps) {
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-      }}
+      className="study-settings-overlay"
       onClick={onClose}
     >
       <div
-        style={{
-          backgroundColor: 'white',
-          padding: '2rem',
-          borderRadius: '8px',
-          maxWidth: '400px',
-          width: '90%',
-        }}
+        className="study-settings-modal"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 style={{ marginTop: 0 }}>Study Settings</h3>
+        <h3 className="study-settings-title">Study Settings</h3>
         
-        <div style={{ marginBottom: '1rem' }}>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <div className="study-settings-field">
+          <label className="study-settings-label">
             Max New Cards Per Day:
           </label>
           <input
@@ -64,43 +48,23 @@ export function StudySettings({ onClose }: StudySettingsProps) {
             max="100"
             value={maxNewCards}
             onChange={(e) => setMaxNewCards(parseInt(e.target.value) || 1)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '1rem',
-            }}
+            className="study-settings-input"
           />
-          <div style={{ fontSize: '0.875rem', color: '#666', marginTop: '0.25rem' }}>
+          <div className="study-settings-help">
             Limit how many new cards you study each day
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+        <div className="study-settings-actions">
           <button
             onClick={onClose}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="study-settings-button study-settings-button-secondary"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#007bff',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
+            className="study-settings-button study-settings-button-primary"
           >
             Save
           </button>

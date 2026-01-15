@@ -1,4 +1,5 @@
 import { CardStatus } from '../utils/cardStatus';
+import './components.css';
 
 interface FiltersProps {
   statusFilter: 'all' | CardStatus;
@@ -20,19 +21,9 @@ export function Filters({
   onSearchChange,
 }: FiltersProps) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-        padding: '1rem',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '4px',
-        marginBottom: '1rem',
-      }}
-    >
+    <div className="filters-container">
       <div>
-        <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+        <label className="filters-search-label">
           Search:
         </label>
         <input
@@ -40,31 +31,19 @@ export function Filters({
           value={searchText}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search cards..."
-          style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid #ddd',
-            borderRadius: '4px',
-            fontSize: '1rem',
-          }}
+          className="filters-search-input"
         />
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '1rem' }}>
+      <div className="filters-grid">
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+          <label className="filters-field-label">
             Status:
           </label>
           <select
             value={statusFilter}
             onChange={(e) => onStatusChange(e.target.value as 'all' | CardStatus)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '1rem',
-            }}
+            className="filters-select"
           >
             <option value="all">All</option>
             <option value="new">New</option>
@@ -75,19 +54,13 @@ export function Filters({
         </div>
 
         <div>
-          <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
+          <label className="filters-field-label">
             Tag:
           </label>
           <select
             value={tagFilter}
             onChange={(e) => onTagChange(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '1rem',
-            }}
+            className="filters-select"
           >
             <option value="all">All Tags</option>
             {availableTags.map((tag) => (

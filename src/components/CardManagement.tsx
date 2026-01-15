@@ -10,6 +10,7 @@ import { CardDetail } from './CardDetail';
 import { Statistics } from './Statistics';
 import { Filters } from './Filters';
 import { DeckId, getDeckInfo } from '../utils/deckStorage';
+import './components.css';
 
 type View = 'list' | 'detail';
 
@@ -88,11 +89,11 @@ export function CardManagement({ deckId }: CardManagementProps) {
   }
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '2rem' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-          <h2 style={{ margin: 0 }}>Card Management</h2>
-          <span style={{ fontSize: '0.875rem', color: '#666' }}>
+    <div className="card-management-container">
+      <div className="card-management-header">
+        <div className="card-management-title-row">
+          <h2 className="card-management-title">Card Management</h2>
+          <span className="card-management-deck-name">
             ({deckInfo.name})
           </span>
         </div>
@@ -109,7 +110,7 @@ export function CardManagement({ deckId }: CardManagementProps) {
         onSearchChange={setSearchText}
       />
 
-      <div style={{ marginTop: '1rem' }}>
+      <div className="card-management-list">
         <CardList
           cards={filteredCards}
           onCardSelect={handleCardSelect}

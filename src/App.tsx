@@ -167,6 +167,21 @@ function App() {
         <p>Studying: {deckInfo.name}</p>
         <nav style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center', alignItems: 'center', flexWrap: 'wrap' }}>
           <button
+            onClick={handleDeckSwitch}
+            style={{
+              padding: '0.5rem 1rem',
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: '500',
+            }}
+            title="Switch to a different deck"
+          >
+            Home
+          </button>
+          <button
             onClick={() => handleViewSwitch('read', deckId)}
             style={{
               padding: '0.5rem 1rem',
@@ -207,22 +222,6 @@ function App() {
             }}
           >
             Manage Cards
-          </button>
-          <button
-            onClick={handleDeckSwitch}
-            style={{
-              padding: '0.5rem 1rem',
-              backgroundColor: '#6c757d',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontWeight: '500',
-              marginLeft: '1rem',
-            }}
-            title="Switch to a different deck"
-          >
-            Switch Deck
           </button>
           <button
             onClick={() => handleClearAllData(deckId)}
