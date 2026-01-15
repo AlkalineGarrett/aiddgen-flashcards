@@ -261,6 +261,33 @@ describe('statistics', () => {
       expect(stats.averageDifficulty).toBe(0.5);
       expect(stats.totalReviews).toBe(3);
     });
+
+    it('should calculate statistics for deck-filtered cards (caller responsibility)', () => {
+      // given: cards from multiple decks mixed together
+      // should: calculate statistics across all provided cards
+      // Note: Deck filtering is the caller's responsibility - this function operates on whatever cards it receives
+      const deck1Cards = [
+        createTestCard('deck1-card1', 'Q1', 'A1', { reviewCount: 5, stability: 20 }),
+        createTestCard('deck1-card2', 'Q2', 'A2', { reviewCount: 3, stability: 15 }),
+      ];
+      const deck2Cards = [
+        createTestCard('deck2-card1', 'Q3', 'A3', { reviewCount: 10, stability: 30 }),
+      ];
+      
+      // If caller doesn't filter, statistics will include all decks
+      const allCards = [...deck1Cards, ...deck2Cards];
+      const stats = calculateStatistics(allCards);
+      
+      expect(stats.totalCards).toBe(3);
+      expect(stats.totalReviews).toBe(18); // 5 + 3 + 10
+      expect(stats.averageStability).toBeCloseTo(21.67); // (20 + 15 + 30) / 3
+      
+      // If caller filters by deck, statistics will be deck-specific
+      const deck1Stats = calculateStatistics(deck1Cards);
+      expect(deck1Stats.totalCards).toBe(2);
+      expect(deck1Stats.totalReviews).toBe(8); // 5 + 3
+      expect(deck1Stats.averageStability).toBe(17.5); // (20 + 15) / 2
+    });
   });
 });
 

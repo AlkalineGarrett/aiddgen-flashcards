@@ -332,9 +332,9 @@ describe('storage', () => {
   });
 
   describe('schema migration', () => {
-    it('should migrate from version 0 (array format) to version 2', () => {
+    it('should migrate from version 0 (array format) to version 2 and persist automatically', () => {
       // given: old format with array of cards
-      // should: migrate to version 2 with decks structure when loading
+      // should: migrate to version 2 with decks structure and persist automatically
       const oldData = [
         createTestCard('1', 'Q1', 'A1'),
         createTestCard('2', 'Q2', 'A2'),
@@ -347,16 +347,15 @@ describe('storage', () => {
       expect(loaded[0].id).toBe('1');
       expect(loaded[1].id).toBe('2');
       
-      // Migration happens in memory - save to persist it
-      saveCards('aiddgen', loaded);
+      // Migration should be persisted automatically
       const stored = JSON.parse(localStorageMock.getItem(STORAGE_KEY)!);
       expect(stored.version).toBe(CURRENT_SCHEMA_VERSION);
       expect(stored.decks.aiddgen).toHaveLength(2);
     });
 
-    it('should migrate from version 1 (cards array) to version 2', () => {
+    it('should migrate from version 1 (cards array) to version 2 and persist automatically', () => {
       // given: version 1 format with cards array
-      // should: migrate to version 2 with decks structure when loading
+      // should: migrate to version 2 with decks structure and persist automatically
       const version1Data = {
         version: 1,
         cards: [
@@ -371,8 +370,7 @@ describe('storage', () => {
       
       expect(loaded).toHaveLength(2);
       
-      // Migration happens in memory - save to persist it
-      saveCards('aiddgen', loaded);
+      // Migration should be persisted automatically
       const stored = JSON.parse(localStorageMock.getItem(STORAGE_KEY)!);
       expect(stored.version).toBe(CURRENT_SCHEMA_VERSION);
       expect(stored.decks.aiddgen).toHaveLength(2);

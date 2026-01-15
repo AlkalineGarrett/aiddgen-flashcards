@@ -77,9 +77,23 @@ function loadAllDecks(): StorageSchema {
     }
     
     const data = JSON.parse(json) as any;
+    const originalVersion = data.version || 0;
     
     // Handle schema migration
-    return migrateSchema(data);
+    const migratedData = migrateSchema(data);
+    
+    // If migration occurred, persist the migrated data
+    if (originalVersion < CURRENT_SCHEMA_VERSION) {
+      try {
+        const migratedJson = JSON.stringify(migratedData);
+        localStorage.setItem(STORAGE_KEY, migratedJson);
+      } catch (saveError) {
+        console.error('Failed to persist migrated schema:', saveError);
+        // Continue with migrated data in memory even if save fails
+      }
+    }
+    
+    return migratedData;
   } catch (error) {
     console.error('Failed to load decks from localStorage:', error);
     // Return empty structure on error

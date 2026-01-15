@@ -17,6 +17,14 @@ export interface CollectionStatistics {
 
 /**
  * Calculate collection statistics
+ * 
+ * Note: This function operates on the provided cards array without filtering by deck.
+ * Deck filtering should be done at the caller level before passing cards to this function.
+ * This design keeps the function pure and allows it to work with any subset of cards.
+ * 
+ * @param cards - Array of cards to calculate statistics for (should be pre-filtered by deck if needed)
+ * @param now - Current timestamp for due date calculations
+ * @returns Collection statistics for the provided cards
  */
 export function calculateStatistics(
   cards: Card[],

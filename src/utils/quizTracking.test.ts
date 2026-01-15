@@ -139,18 +139,20 @@ describe('quizTracking', () => {
 
     it('should handle same card answered multiple times', () => {
       // given: same card answered multiple times
-      // should: track in answeredCards once, but can be in both correct/incorrect sets
+      // should: track in answeredCards once, and remove from opposite set
       let state = createQuizTrackingState();
       
       state = trackQuizAnswer(state, 'card1', true);
+      expect(state.correctCardIds.has('card1')).toBe(true);
+      expect(state.incorrectCardIds.has('card1')).toBe(false);
+      
       state = trackQuizAnswer(state, 'card1', false); // Same card, different answer
       
       // Set should only have one entry for card1 in answeredCards
       expect(state.answeredCards.size).toBe(1);
       expect(state.answeredCards.has('card1')).toBe(true);
-      // Note: Implementation doesn't remove from previous set, so card can be in both
-      // This is a limitation - card remains in correctCardIds from first answer
-      expect(state.correctCardIds.has('card1')).toBe(true);
+      // Card should be removed from correctCardIds and added to incorrectCardIds
+      expect(state.correctCardIds.has('card1')).toBe(false);
       expect(state.incorrectCardIds.has('card1')).toBe(true);
     });
   });

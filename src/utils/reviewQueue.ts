@@ -165,12 +165,13 @@ export function getQueueStats(
   reviewCardsInQueue: number;
   remainingNewCardSlots: number;
 } {
+  const remainingSlots = Math.max(0, config.maxNewCardsPerDay - config.newCardsStudiedToday);
   return {
     totalDue: queue.allCards.length,
-    newCardsAvailable: queue.newCards.length + (config.maxNewCardsPerDay - config.newCardsStudiedToday),
+    newCardsAvailable: Math.max(0, queue.newCards.length + remainingSlots),
     newCardsInQueue: queue.newCards.length,
     reviewCardsInQueue: queue.reviewCards.length,
-    remainingNewCardSlots: Math.max(0, config.maxNewCardsPerDay - config.newCardsStudiedToday),
+    remainingNewCardSlots: remainingSlots,
   };
 }
 

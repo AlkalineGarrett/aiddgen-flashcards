@@ -33,14 +33,22 @@ export function trackQuizAnswer(
   cardId: string,
   isCorrect: boolean
 ): QuizTrackingState {
+  // Remove card from opposite set if it exists there
+  const correctCardIds = new Set(state.correctCardIds);
+  const incorrectCardIds = new Set(state.incorrectCardIds);
+  
+  if (isCorrect) {
+    correctCardIds.add(cardId);
+    incorrectCardIds.delete(cardId);
+  } else {
+    incorrectCardIds.add(cardId);
+    correctCardIds.delete(cardId);
+  }
+  
   return {
     answeredCards: new Set([...state.answeredCards, cardId]),
-    correctCardIds: isCorrect
-      ? new Set([...state.correctCardIds, cardId])
-      : state.correctCardIds,
-    incorrectCardIds: !isCorrect
-      ? new Set([...state.incorrectCardIds, cardId])
-      : state.incorrectCardIds,
+    correctCardIds,
+    incorrectCardIds,
   };
 }
 

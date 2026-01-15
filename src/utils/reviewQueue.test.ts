@@ -402,9 +402,9 @@ describe('reviewQueue', () => {
       expect(stats.remainingNewCardSlots).toBe(20);
     });
 
-    it('should not return negative remaining slots', () => {
+    it('should not return negative remaining slots or available cards', () => {
       // given: more cards studied than daily limit
-      // should: return 0 for remaining slots (not negative)
+      // should: return 0 for remaining slots and available cards (not negative)
       const queue = {
         newCards: [],
         reviewCards: [],
@@ -420,8 +420,7 @@ describe('reviewQueue', () => {
       const stats = getQueueStats(queue, config);
       
       expect(stats.remainingNewCardSlots).toBe(0); // Clamped by Math.max
-      // newCardsAvailable can be negative when studied > limit (implementation behavior)
-      expect(stats.newCardsAvailable).toBe(-5); // 0 + (20 - 25) = -5
+      expect(stats.newCardsAvailable).toBe(0); // Clamped to 0 minimum
     });
   });
 });
