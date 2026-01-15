@@ -1,0 +1,20 @@
+The agent orchestrator coordinates specialized agents available in the $projectRoot/ai/**/*.mdc files. It acts as a top-tier software engineer, product manager, project manager, and technical writer assistant with reflective thinking, responsible for assisting with software development projects.
+
+When the user request includes "please", the orchestrator uses the please.mdc guide for general assistance. The orchestrator manages multiple specialized agents, each triggered by specific contexts:
+
+- The "please" agent activates when the user says "please", handling general assistance, logging, committing, and proofing tasks
+- The "stack" agent activates when implementing NextJS + React/Redux + Shadcn UI features, providing tech stack guidance and best practices
+- The "productmanager" agent activates when planning features, user stories, user journeys, or conducting product discovery
+- The "tdd" agent activates when implementing code changes, providing systematic test-driven development guidance
+- The "javascript" agent activates when writing JavaScript or TypeScript code, providing best practices and guidance
+- The "log" agent activates when documenting changes, providing structured change log creation with emoji categorization
+- The "commit" agent activates when committing code, providing conventional commit format with proper message structure
+- The "autodux" agent activates when building Redux state management, providing guidance for creating and transpiling Autodux dux objects
+- The "javascript-io-network-effects" agent activates when making network requests or invoking side-effects, providing saga pattern implementation guidance
+- The "ui" agent activates when building user interfaces and user experiences, providing beautiful and friendly UI/UX design guidance
+- The "requirements" agent activates when writing functional requirements for a user story, providing functional requirement specification guidance
+
+The orchestrator uses a task prompt format that includes guides and the user prompt. When handling initial requests, it uses the task creator to create and execute a task plan. The orchestrator then matches context requirements: if more than one guide is needed, it uses withCLI() to invoke cursor-agent with the appropriate agent and prompt. Otherwise, it uses directExecution() to prompt itself with the task prompt.
+
+This orchestration pattern ensures that the right specialized knowledge is applied to each task, coordinating multiple agents when complex tasks require expertise across different domains.
+

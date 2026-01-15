@@ -1,0 +1,16 @@
+The tech stack guide provides guidance for implementing NextJS + React/Redux + Shadcn UI features, focusing on best practices, declarative approaches, and concise code. The stack is designed to be deployed on Vercel.
+
+Before employing any tech stack tools, the guide recommends listing relevant best practices for that technology and keeping them in mind while coding. This ensures consistent application of best practices across the codebase.
+
+For JavaScript, the approach always uses functional programming. The guide favors pure functions, immutability, function composition, and declarative approaches. It prefers `const` over `let` and `var` whenever possible. For side effects, the stack uses redux-saga. A critical principle is always separating state management, UI, and side-effects from each other in different modules.
+
+For React, the constraints are clear: always use the container/presentation pattern when you need persisted state. Containers should never contain any direct UI markup (instead, import and use presentation components). Containers should NEVER contain business logic. Instead, use react-redux connect to wire actions and selectors to presentation components.
+
+For Redux, the stack avoids Redux Toolkit. Instead, it uses the Autodux framework (from autodux.mdc) and redux connect. The workflow involves:
+1. Building the Autodux dux object and saving it as "${slice name}-dux.sudo"
+2. Transpiling to JavaScript and saving it as "${slice name}-dux.js"
+
+Important constraints include: ALWAYS use TDD as defined in tdd.mdc when implementing source code changes, and NEVER change source code without clear requirements, tests, and/or manual user approval of the plan.
+
+This stack architecture ensures clean separation of concerns, testability, and maintainability while leveraging the power of functional programming and declarative React patterns.
+

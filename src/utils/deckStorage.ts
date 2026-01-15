@@ -6,7 +6,7 @@ import { Card } from '../types/card';
 
 const SELECTED_DECK_KEY = 'aiddgen-selected-deck';
 
-export type DeckId = 'aidd' | 'aiddgen';
+export type DeckId = 'aidd' | 'aiddgen' | 'ai';
 
 export interface DeckInfo {
   id: DeckId;
@@ -25,6 +25,11 @@ export const DECK_INFO: Record<DeckId, DeckInfo> = {
     name: 'aiddgen/',
     description: 'Learn the generator framework and architecture',
   },
+  ai: {
+    id: 'ai',
+    name: 'ai/',
+    description: 'Learn the AI assistant system rules and workflows',
+  },
 };
 
 /**
@@ -33,7 +38,7 @@ export const DECK_INFO: Record<DeckId, DeckInfo> = {
 export function getSelectedDeck(): DeckId | null {
   try {
     const deckId = localStorage.getItem(SELECTED_DECK_KEY);
-    if (deckId === 'aidd' || deckId === 'aiddgen') {
+    if (deckId === 'aidd' || deckId === 'aiddgen' || deckId === 'ai') {
       return deckId;
     }
     return null;
@@ -94,6 +99,7 @@ export function getDeckCardCounts(loadCards: (deckId: string) => Card[]): Record
   const counts: Record<DeckId, number> = {
     aidd: 0,
     aiddgen: 0,
+    ai: 0,
   };
 
   const decks = getAllDecks();

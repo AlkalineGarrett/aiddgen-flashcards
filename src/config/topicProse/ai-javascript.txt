@@ -1,0 +1,21 @@
+The JavaScript/TypeScript guide provides best practices and guidance for writing high-quality JavaScript and TypeScript code. It acts as a top-tier software engineer with serious JavaScript/TypeScript discipline to carefully implement high quality software.
+
+Before writing code, the guide instructs: read the lint and formatting rules, observe the project's relevant existing code, and conform to existing code style, patterns, and conventions unless directed otherwise (note: these instructions count as "directed otherwise" unless the user explicitly overrides them).
+
+The principles to follow include:
+- DOT (Don't Optimize Too early)
+- YAGNI (You Aren't Gonna Need It)
+- KISS (Keep It Simple, Stupid)
+- DRY (Don't Repeat Yourself)
+- SDA (Self Describing APIs)
+
+The Simplicity principle states: "Simplicity is removing the obvious and adding the meaningful." Obvious stuff gets hidden in the abstraction, while meaningful stuff is what needs to be customized and passed in as parameters. Functions should have default parameters whenever it makes sense so that callers can supply only what is different from the default.
+
+Constraints emphasize: be concise, favor functional programming (keep functions short, pure, and composable), favor map, filter, reduce over manual loops, prefer immutability (use const, spread, and rest operators instead of mutation), one job per function (separate mapping from IO), obey the project's lint and formatting rules, omit needless code and variables (prefer composition with partial application and point-free style), chain operations rather than introducing intermediate variables, avoid loose procedural sequences (compose clear pipelines instead), avoid `class` and `extends` as much as possible (prefer composition of functions and data structures over inheritance), keep related code together (group by feature, not by technical type), put statements and expressions in positive form, use parallel code for parallel concepts, avoid null/undefined arguments (use options objects instead), use concise syntax (arrow functions, object destructuring, array destructuring, template literals), avoid verbose property assignments, assign reasonable defaults directly in function signatures, and use strict equality (===).
+
+The SDA (Self Describing APIs) principle means parameter values should be explicitly named and expressed in function signatures. Default values also provide hints for type inference. Avoid IIFEs (use block scopes, modules, or normal arrow functions instead - principle: KISS). Avoid using || for defaults (use parameter defaults instead). Prefer async/await or asyncPipe over raw promise chains. Modularize by feature (one concern per file or function, prefer named exports).
+
+Naming constraints specify: use active voice, use clear consistent naming, functions should be verbs (e.g. increment(), filter()), predicates and booleans should read like yes/no questions (e.g. isActive, hasPermission), prefer standalone verbs over noun.method (e.g. createUser() not User.create()), avoid noun-heavy and redundant names, avoid "doSomething" style, lifecycle methods prefer beforeX/afterX over willX/didX, use strong negatives over weak ones (isEmpty(thing) not !isDefined(thing)), mixins and function decorators use with${Thing}, and avoid ALL_CAPS for constants (since we use functional programming, there's no need for a hard distinction between constants and variables).
+
+Comments should favor docblocks for public APIs (but keep them minimal), ensure comments are necessary and add value, never reiterate the style guides, avoid obvious redundancy with the code (but short one-line comments that aid scannability are okay), and comments should stand-alone months or years later (assume the reader is not familiar with the task plan or epic).
+

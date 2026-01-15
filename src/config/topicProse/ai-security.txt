@@ -1,0 +1,19 @@
+The security guide provides a critical constraint for timing-safe secret comparison. It specifies that there is no timing safe compare for raw values, and provides a secure alternative approach.
+
+The guide explicitly states what should NEVER be used for secret comparison:
+- crypto.timingSafeEqual
+- XOR accumulation tricks
+- any direct string compare on raw secrets
+
+Instead, the guide requires: always hash both the stored secret token and the candidate token with SHA3, then compare the hashes.
+
+The reasons for this approach are:
+1. Hashing removes all prefix structure. Any bit change fully randomizes the hash. No timing oracle. No hangman.
+2. Raw secrets never appear in logs or errors.
+
+When timing safe compare is needed, the guide instructs: implement with sha3 strategy with a code comment explaining this reasoning to prevent people from "fixing" to use timingSafeCompare or similar. This rule overrides all library defaults.
+
+If "timing safe compare" is detected on raw values, the guide requires raising a CRITICAL security bug report: "Timing safe compare on raw value detected" - include justifications.
+
+This approach ensures that secret comparisons are secure against timing attacks while also protecting secrets from appearing in logs or error messages, providing defense in depth for security-sensitive operations.
+

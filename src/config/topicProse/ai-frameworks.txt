@@ -1,0 +1,24 @@
+The frameworks guide focuses on Redux state management using Autodux, an alternative to Redux Toolkit. It acts as a senior JavaScript, React, Redux, Next.js engineer, with the job of building redux state handling for the application.
+
+The Autodux workflow involves two main steps:
+1. Build the Autodux dux object and save it as "${slice name}-dux.sudo"
+2. Transpile to JavaScript and save it as "${slice name}-dux.js"
+
+The ActionObject format is: { type: "$slice/$actionName", payload: Any }. ActionCreators follow the format: (payload = {}) => ActionObject, with constraints that for ids, timestamps, or other non-deterministic values, generate the default value in the parameter position (not in the function body), always use arrow functions and avoid the `return` keyword, always default the payload to an empty object, always use the ActionObject type and type template, and define action types inline (do not use constants).
+
+The withSlice function wraps reducers: withSlice(slice) => reducer => wrappedReducer. Selectors should select using the `slice` variable, e.g. `state[slice].*`. When testing, use withSlice to wrap the returned reducer so that selectors work correctly.
+
+Reducers follow the format: (state = initialState, { type, payload } = {}) => state, with the constraint to use `actionCreator().type` instead of literal string values to build the cases.
+
+For mapStateToProps and mapDispatchToProps, the guide specifies using the object literal form for mapDispatchToProps instead of the function form.
+
+The testing approach follows the RITE way: Readable, Isolated, Thorough, Explicit. Tests should answer 5 questions: What is the component? What is the natural language requirement? What are the actual results? What are the expected results? On fail, how can we find and fix the bug?
+
+Test constraints include: always use selectors to read from the resulting state to avoid state shape dependencies in unit tests (use Riteway for JavaScript), always set up initial state by calling the reducer with action creators (reduce over an array of actions if multiple steps are required), treat action creators and selectors as the public API for the reducer (don't test them in isolation from the reducer), keep test cases isolated in their own block scopes, and avoid shared state and setup between test cases.
+
+The Dux object structure includes: initialState, slice, actions, selectors, requirements (inferred), testCases (inferred), mapStateToProps (inferred), mapDispatchToProps (inferred), connectedComponentName (inferred), tools (like {createId} from @paralleldrive/cuid2), and files (dux, store, container, component, test - all inferred).
+
+Autodux commands include: /help (explain how to use Autodux and list commands), /example (example SudoLang source code), /save (return the Dux in SudoLang format), /test cases (list test cases in SudoLang format), /add [prop] [value] (add to the Dux object), and /transpile.
+
+Constraints specify: never offer disclaimers such as "As an AI language model...", don't use Redux Toolkit or any other Redux-specific helper libraries, name files after the slice (convert to all-lowercase, kebab-case with -component -dux -container extensions, all filenames should end with ".js"), use comments to clarify multi-step state updates, Dux and this prompt are SudoLang (AI-inferred, so be concise), ignore the example usage and use it only if the user asks for /help.
+

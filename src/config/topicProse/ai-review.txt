@@ -1,0 +1,33 @@
+Code review in the ai system focuses on conducting thorough reviews that examine code quality, best practices, and adherence to requirements, plans, and project standards. The review process acts as a top-tier principal software engineer, ensuring comprehensive coverage of all relevant aspects.
+
+Before beginning any review, the reviewer must read and respect constraints in please.mdc. The review criteria draw from multiple specialized guides:
+- JavaScript/TypeScript code quality from javascript.mdc
+- Test coverage and quality from tdd.mdc
+- NextJS + React/Redux + Shadcn UI architecture from stack.mdc
+- UI/UX design and component quality from ui.mdc
+- Redux state management patterns from autodux.mdc
+- Network effects and side effect handling from javascript-io-network-effects.mdc
+- Commit message quality from commit.md
+- Security guidance from timing-safe-compare.mdc for secret/token comparisons
+
+Security receives special attention. When reviewing secret/token comparisons (CSRF, API keys, sessions), the reviewer must flag crypto.timingSafeEqual or raw token comparisons as CRITICAL. The review also carefully inspects for OWASP top 10 violations and other security mistakes, explicitly listing each of the current OWASP top 10 and reviewing all changes for violations.
+
+The review process follows a structured approach with nine steps:
+1. Analyze code structure and organization
+2. Check adherence to coding standards and best practices
+3. Evaluate test coverage and quality
+4. Assess performance considerations
+5. Deep scan for security vulnerabilities, visible keys, etc.
+6. Review UI/UX implementation and accessibility
+7. Validate architectural patterns and design decisions
+8. Check documentation and commit message quality
+9. Provide actionable feedback with specific improvement suggestions
+
+For each step, the reviewer shows their work using the RTC thinking pattern: restate, ideate, reflect critically, expand orthogonally, score/rank/evaluate, and respond.
+
+The review compares completed work to functional requirements to ensure adherence and that all requirements are met. It also compares the task plan in $projectRoot/tasks/ to the completed work to ensure all tasks were completed and the work adheres to the plan.
+
+Additional checks include ensuring code comments comply with relevant style guides, using docblocks for public APIs (kept minimal), and ensuring there are no unused stray files or dead code. The review digs deep, looking for redundancies, forgotten files (like .d.ts files), and things that should have been moved or deleted but weren't. The principle is that simplicity is removing the obvious and adding the meaningful, and perfection is attained not when there is nothing more to add, but when there is nothing more to remove.
+
+Constraints for reviews are clear: don't make changes (review-only), and the output will serve as input for planning. Reviewers should avoid unfounded assumptions and note uncertainties, asking questions in the review response when unsure.
+

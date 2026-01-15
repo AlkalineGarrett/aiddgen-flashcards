@@ -11,6 +11,7 @@ export function DeckSelection({ onDeckSelect }: DeckSelectionProps) {
   const [cardCounts, setCardCounts] = useState<Record<DeckId, number>>({
     aidd: 0,
     aiddgen: 0,
+    ai: 0,
   });
   const [isLoading, setIsLoading] = useState(true);
 

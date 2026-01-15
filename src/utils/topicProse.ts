@@ -20,11 +20,21 @@ function getProseFileKey(topicId: string, deckId: DeckId): string | null {
     normalizedTopicId = 'choice-hierarchy';
   }
 
-  const expectedKey = `../config/topicProse/${deckId}-${normalizedTopicId}.txt`;
+  // First try with normalized topic ID
+  let expectedKey = `../config/topicProse/${deckId}-${normalizedTopicId}.txt`;
   
   // Check if the file exists in the glob
   if (expectedKey in proseFiles) {
     return expectedKey;
+  }
+
+  // If normalized didn't work and topicId is different, try original topicId
+  // This handles compound topic IDs like 'javascript-io-network-effects'
+  if (normalizedTopicId !== topicId) {
+    expectedKey = `../config/topicProse/${deckId}-${topicId}.txt`;
+    if (expectedKey in proseFiles) {
+      return expectedKey;
+    }
   }
 
   return null;

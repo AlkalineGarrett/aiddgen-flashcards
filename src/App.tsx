@@ -24,17 +24,17 @@ function parseRoute(pathname: string): Route {
   }
 
   // Match /study/:deckId, /manage/:deckId, or /read/:deckId
-  const studyMatch = path.match(/^\/study\/(aidd|aiddgen)$/);
+  const studyMatch = path.match(/^\/study\/(aidd|aiddgen|ai)$/);
   if (studyMatch) {
     return { type: 'study', deckId: studyMatch[1] as DeckId };
   }
 
-  const manageMatch = path.match(/^\/manage\/(aidd|aiddgen)$/);
+  const manageMatch = path.match(/^\/manage\/(aidd|aiddgen|ai)$/);
   if (manageMatch) {
     return { type: 'manage', deckId: manageMatch[1] as DeckId };
   }
 
-  const readMatch = path.match(/^\/read\/(aidd|aiddgen)$/);
+  const readMatch = path.match(/^\/read\/(aidd|aiddgen|ai)$/);
   if (readMatch) {
     return { type: 'read', deckId: readMatch[1] as DeckId };
   }

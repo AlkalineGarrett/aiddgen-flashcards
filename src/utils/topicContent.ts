@@ -11,7 +11,7 @@ import { generateTopicProse } from './topicProse';
  */
 export function extractPrimaryTopic(tag: string): string | null {
   // Ignore deck tags
-  if (tag === 'aidd' || tag === 'aiddgen') {
+  if (tag === 'aidd' || tag === 'aiddgen' || tag === 'ai') {
     return null;
   }
 
@@ -32,10 +32,15 @@ export function getCardPrimaryTopic(card: Card): string | null {
 
   // Find the first tag that's not a deck tag
   for (const tag of card.tags) {
-    const primaryTopic = extractPrimaryTopic(tag);
-    if (primaryTopic) {
-      return primaryTopic;
+    // Ignore deck tags
+    if (tag === 'aidd' || tag === 'aiddgen' || tag === 'ai') {
+      continue;
     }
+    
+    // For compound topic IDs (like 'javascript-io-network-effects'), 
+    // return the full tag name to match prose files
+    // For simple tags, return as-is
+    return tag;
   }
 
   return null;

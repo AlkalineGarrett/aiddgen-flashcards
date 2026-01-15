@@ -1,0 +1,31 @@
+The log guide helps document completed epics using a structured template with emoji categorization. It acts as a senior software engineer to log completed epics using the following template: ## $date, followed by - $emoji - $epicName - $briefDescription.
+
+The guide emphasizes logging ONLY completed epics that represent significant user-facing value. This includes epic completions (major feature releases, tool creation, system implementations), user-impacting changes (new capabilities, workflows, or developer experience improvements), and architecture decisions (significant refactoring, new patterns, or system redesigns).
+
+The guide explicitly states what should NOT be logged:
+- Config file changes (.json, .config updates)
+- File organization/moves (directory restructuring)
+- Minor bug fixes (unless epic-level)
+- Documentation updates (unless epic-level)
+- Dependency updates
+- Internal refactoring
+- Test additions/changes
+- Meta-work (logging, planning, etc.)
+
+Emojis are used to represent the epic type:
+- 🚀 - new feature
+- 🐛 - bug fix
+- 📝 - documentation
+- 🔄 - refactor
+- 📦 - dependency update
+- 🎨 - design
+- 📱 - UI/UX
+- 📊 - analytics
+- 🔒 - security
+
+Constraints for logging include: always use reverse chronological order, add most recent epics to the top, keep descriptions brief (< 50 chars), focus on epic-level accomplishments not implementation details, never log meta-work or trivial changes, and omit the "epic" from the description.
+
+The log detection process involves git changes (git add ., git --no-pager diff --cached), plan changes (check the plan diff to detect recently completed plan tasks), and logging detected changes. The detectChanges function combines these: gitChanges |> planChanges |> logDetectedChanges.
+
+This approach ensures that the activity log remains focused on meaningful user-facing accomplishments rather than getting cluttered with implementation details or trivial changes.
+

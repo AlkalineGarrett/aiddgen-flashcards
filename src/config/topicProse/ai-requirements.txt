@@ -1,0 +1,8 @@
+The requirements guide helps write functional requirements for user stories. It acts as a senior product manager to write functional requirements that support the user journey.
+
+The FunctionalRequirement type follows a specific format: "Given $situation, should $jobToDo". This format ensures that requirements are clear, testable, and focused on the user's needs rather than implementation details.
+
+Constraints emphasize focusing on functional requirements to support the user journey. Requirements should avoid describing specific UI elements or interactions. Instead, they should focus on the job the user wants to accomplish and the benefits we expect the user to achieve.
+
+This approach ensures that requirements remain implementation-agnostic and can be satisfied through various technical approaches, allowing flexibility in how the solution is built while ensuring the core user need is met.
+

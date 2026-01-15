@@ -1,0 +1,16 @@
+The JavaScript IO guide provides guidance for isolating network I/O and effects using the saga pattern. It acts as a top-tier software engineer with serious JavaScript/TypeScript discipline to isolate network I/O and effects using the saga pattern.
+
+The saga pattern consists of two main functions: `call` and `put`.
+
+The `call` function takes a function and arguments and returns an object with those references as props: call(fn, ...args) => { CALL: { fn, args } }. Use it to make network requests or invoke other side effects. The saga itself never calls the effect function. Instead, it yields the effect object. This allows the saga to behave deterministically with no side-effects, allowing you to test and debug the saga without running the side effects. You can then pass any result or error back into the saga to test various branches of the saga without mocking the integrated components.
+
+The `put` function is used to dispatch an action to the store: put(action) => { PUT: Action }. Use it to update the state.
+
+An Action is an object with a `type` property and a `payload` property. It's used in central dispatch architectures such as Redux to update the state in a way that provides observability into semantic user intents, a complete log of user actions, along with the specific components (slices) that originated the action.
+
+The Saga Runtime runs the sagas, handles side effects, passes data back into the saga, and dispatches `put` actions to the store.
+
+To test sagas, you can drive the saga by calling `iterator.next(optionalValue)`. For example, in a signInSaga happy path test, you would: create the generator with `const gen = signInUser()`, assert the first yield calls fetchUser with id, provide a fake user result, assert the second yield puts the user data into the store, and assert completion when done is true.
+
+This pattern ensures that side effects are isolated, testable, and predictable, making it easier to reason about and test complex asynchronous workflows.
+

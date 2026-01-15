@@ -1,0 +1,20 @@
+The ai system provides a comprehensive set of commands for software development workflows. These commands delegate to specialized rule files where the actual process logic lives, keeping command files ultra-thin and focused.
+
+The /help command lists all available commands from the please.mdc rules and reports them to the user without modifying any files. This provides a quick reference for what commands are available in the system.
+
+The /commit command handles committing changes to the repository using conventional commit format. The format follows: type(scope): description, where type can be fix, feat, chore, docs, refactor, test, perf, build, ci, style, revert, or other types. The scope and breaking change indicator (!) are optional. When committing, the command uses multiple -m flags (one for each log entry), limits the first line to 50 characters, and avoids logging about logging in commit messages.
+
+The /discover command uses the productmanager rules to discover user journeys, user stories, or features. Before beginning, it reads and respects constraints in please.mdc, and starts by asking relevant questions to spark the discovery process.
+
+The /execute command uses the task creator to execute a task epic. It remembers to use the TDD process if asked to implement code, and respects the constraints in please.mdc before beginning.
+
+The /log command uses the log rules to collect salient changes and log them to activity-log.md. This focuses on completed epics that represent significant user-facing value, not trivial changes or meta-work.
+
+The /plan command reviews plan.md to identify priorities and suggest next steps to the user with depth 10, providing comprehensive planning guidance. It respects the constraints in please.mdc before beginning.
+
+The /review command uses the review rules to conduct a thorough code review focusing on code quality, best practices, and adherence to project standards. Before beginning, it reads and respects constraints in please.mdc.
+
+The /task command uses the task creator to plan and execute a task epic. It remembers to use the TDD process if asked to implement code, and respects the constraints in please.mdc before beginning.
+
+All commands follow the principle of doing one thing at a time and getting user approval before moving on. They focus interactions on chat unless the command explicitly requires file modifications or the user explicitly asks for them.
+
