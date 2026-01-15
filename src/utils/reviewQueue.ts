@@ -95,11 +95,13 @@ export function buildReviewQueue(
   const sortedNewCards = sortCardsByPriority(newCards, now);
   const sortedReviewCards = sortCardsByPriority(reviewCards, now);
   
-  // Apply daily new card limit
+  // Apply daily new card limit for tracking/display purposes
   const remainingNewCardSlots = Math.max(0, config.maxNewCardsPerDay - config.newCardsStudiedToday);
   const limitedNewCards = sortedNewCards.slice(0, remainingNewCardSlots);
   
   // Mix cards: prioritize overdue review cards, then new cards, then upcoming review cards
+  // Note: Include ALL due cards in allCards, regardless of daily limit, so cards added
+  // during quizzes or other contexts are always reviewable
   const allCards: Card[] = [];
   
   // First: overdue review cards (highest priority)
@@ -109,8 +111,8 @@ export function buildReviewQueue(
   });
   allCards.push(...overdueReviewCards);
   
-  // Second: new cards (up to daily limit)
-  allCards.push(...limitedNewCards);
+  // Second: all new cards (include all due new cards, not just those within daily limit)
+  allCards.push(...sortedNewCards);
   
   // Third: due but not overdue review cards
   const dueReviewCards = sortedReviewCards.filter((card) => {
@@ -120,9 +122,9 @@ export function buildReviewQueue(
   allCards.push(...dueReviewCards);
   
   return {
-    newCards: limitedNewCards,
+    newCards: limitedNewCards, // Still track limited new cards for display purposes
     reviewCards: sortedReviewCards,
-    allCards,
+    allCards, // But include ALL due cards in the study queue
   };
 }
 

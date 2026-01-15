@@ -170,9 +170,9 @@ describe('reviewQueue', () => {
       expect(queue.reviewCards.map(c => c.id)).toEqual(['2', '4']);
     });
 
-    it('should limit new cards by daily limit', () => {
+    it('should limit new cards by daily limit for tracking, but include all due cards in allCards', () => {
       // given: more new cards than daily limit
-      // should: limit new cards in queue
+      // should: limit newCards field for tracking, but include all due cards in allCards
       const now = Date.now();
       const cards = Array.from({ length: 30 }, (_, i) =>
         createTestCard(`card-${i}`, `Q${i}`, `A${i}`, {
@@ -189,8 +189,10 @@ describe('reviewQueue', () => {
       
       const queue = buildReviewQueue(cards, config, now);
       
+      // newCards should be limited for tracking/display purposes
       expect(queue.newCards).toHaveLength(20);
-      expect(queue.allCards.filter(c => c.state.reviewCount === 0)).toHaveLength(20);
+      // But allCards should include ALL due cards (so cards added during quizzes are always reviewable)
+      expect(queue.allCards.filter(c => c.state.reviewCount === 0)).toHaveLength(30);
     });
 
     it('should respect already studied new cards today', () => {
