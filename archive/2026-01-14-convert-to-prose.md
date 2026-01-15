@@ -1,4 +1,4 @@
-# Read-Before-Quiz Feature Plan
+# Plan for converting reading view into prose
 
 **Status**: 🚧 IN PROGRESS
 **Goal**: Allow users to read content in prose form
