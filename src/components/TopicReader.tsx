@@ -9,9 +9,16 @@ import {
   confirmTopic,
   isTopicConfirmed,
   getCardsForTopic,
+  getReadTopics,
+  saveReadTopics,
+  markTopicAsRead,
+  isTopicRead,
+  getLastReadTopic,
+  setLastReadTopic,
 } from '../utils/topicConfirmation';
 import { getDeckGenerator } from '../utils/flashcardGenerator';
 import { generateTopicProse } from '../utils/topicProse';
+import { saveQuizResults, getIncorrectCardIdsFromQuiz } from '../utils/quizUtils';
 import { Quiz, QuizResult } from './Quiz';
 import { QuizSummary } from './QuizSummary';
 import './components.css';
@@ -84,15 +91,8 @@ export function TopicReader({ deckId }: TopicReaderProps) {
 
   // Load read topics from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(`read-topics-${deckId}`);
-    if (stored) {
-      try {
-        const readTopicsArray = JSON.parse(stored) as string[];
-        setReadTopics(new Set(readTopicsArray));
-      } catch (e) {
-        // Ignore parse errors
-      }
-    }
+    const readTopicsSet = getReadTopics(deckId);
+    setReadTopics(readTopicsSet);
   }, [deckId]);
 
   // Load confirmed topics from localStorage on mount
@@ -105,7 +105,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   useEffect(() => {
     if (!topicContent || topicContent.topics.length === 0) return;
     
-    const lastTopicId = localStorage.getItem(`last-read-topic-${deckId}`);
+    const lastTopicId = getLastReadTopic(deckId);
     if (lastTopicId) {
       const topicIndex = topicContent.topics.findIndex((t) => t.id === lastTopicId);
       if (topicIndex !== -1) {
@@ -117,10 +117,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   // Save read topics to localStorage
   useEffect(() => {
     if (readTopics.size > 0) {
-      localStorage.setItem(
-        `read-topics-${deckId}`,
-        JSON.stringify(Array.from(readTopics))
-      );
+      saveReadTopics(deckId, readTopics);
     }
   }, [readTopics, deckId]);
 
@@ -142,7 +139,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
         // Index out of bounds, reset to first topic
         setCurrentTopicIndex(0);
         if (topicContent.topics[0]) {
-          localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[0].id);
+          setLastReadTopic(deckId, topicContent.topics[0].id);
         }
       }
     }
@@ -154,23 +151,15 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   useEffect(() => {
     if (!currentTopic) return;
     
-    const stored = localStorage.getItem(`quiz-results-${deckId}-${currentTopic.id}`);
-    if (stored) {
-      try {
-        const result = JSON.parse(stored) as QuizResult;
-        setPreviousIncorrectCardIds(new Set(result.incorrectCardIds));
-      } catch (e) {
-        // Ignore parse errors
-      }
-    } else {
-      setPreviousIncorrectCardIds(new Set());
-    }
+    const incorrectIds = getIncorrectCardIdsFromQuiz(deckId, currentTopic.id);
+    setPreviousIncorrectCardIds(new Set(incorrectIds));
   }, [deckId, currentTopic?.id]);
 
   const handleQuiz = () => {
     if (!currentTopic) return;
 
     // Mark topic as read
+    markTopicAsRead(deckId, currentTopic.id);
     setReadTopics((prev) => new Set([...prev, currentTopic.id]));
 
     // Get cards for this topic that don't already exist
@@ -190,7 +179,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
     setConfirmedTopics((prev) => new Set([...prev, currentTopic.id]));
 
     // Save last read topic
-    localStorage.setItem(`last-read-topic-${deckId}`, currentTopic.id);
+    setLastReadTopic(deckId, currentTopic.id);
 
     // Prepare cards to pass to quiz (current cards + newly added cards)
     // This ensures quiz sees the cards immediately even before state updates
@@ -207,15 +196,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
   const handleQuizComplete = (result: QuizResult) => {
     // Save quiz results
     if (currentTopic) {
-      // If all cards were correct, ensure incorrect card IDs are cleared
-      const resultToSave = {
-        ...result,
-        incorrectCardIds: result.incorrectCards === 0 ? [] : result.incorrectCardIds,
-      };
-      localStorage.setItem(
-        `quiz-results-${deckId}-${currentTopic.id}`,
-        JSON.stringify(resultToSave)
-      );
+      saveQuizResults(deckId, currentTopic.id, result);
     }
     
     setQuizResult(result);
@@ -253,13 +234,13 @@ export function TopicReader({ deckId }: TopicReaderProps) {
       if (topicIndex !== -1) {
         // Topic found, set the index
         setCurrentTopicIndex(topicIndex);
-        localStorage.setItem(`last-read-topic-${deckId}`, topicIdToRestore);
+        setLastReadTopic(deckId, topicIdToRestore);
       } else {
         // Topic was filtered out (all cards in storage)
         // Reset to first topic since the quiz topic is no longer available
         if (topicContent.topics.length > 0) {
           setCurrentTopicIndex(0);
-          localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[0].id);
+          setLastReadTopic(deckId, topicContent.topics[0].id);
         }
       }
     }
@@ -271,7 +252,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
       setCurrentTopicIndex(nextIndex);
       // Update last read topic
       if (topicContent.topics[nextIndex]) {
-        localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[nextIndex].id);
+        setLastReadTopic(deckId, topicContent.topics[nextIndex].id);
       }
     }
   };
@@ -282,7 +263,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
       setCurrentTopicIndex(prevIndex);
       // Update last read topic
       if (topicContent && topicContent.topics[prevIndex]) {
-        localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[prevIndex].id);
+        setLastReadTopic(deckId, topicContent.topics[prevIndex].id);
       }
     }
   };
@@ -291,7 +272,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
     setCurrentTopicIndex(index);
     // Update last read topic when user manually selects a topic
     if (topicContent && topicContent.topics[index]) {
-      localStorage.setItem(`last-read-topic-${deckId}`, topicContent.topics[index].id);
+      setLastReadTopic(deckId, topicContent.topics[index].id);
     }
   };
 
@@ -414,7 +395,7 @@ export function TopicReader({ deckId }: TopicReaderProps) {
         </div>
         <div className="topic-reader-selection-list">
           {topicContent.topics.map((topic, index) => {
-            const topicIsRead = readTopics.has(topic.id);
+            const topicIsRead = isTopicRead(deckId, topic.id);
             const topicIsConfirmed = isTopicConfirmed(deckId, topic.id);
             const isCurrent = index === currentTopicIndex;
             let buttonClass = 'topic-reader-topic-button topic-reader-topic-button-default';

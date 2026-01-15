@@ -85,3 +85,62 @@ export function clearAllDeckState(deckId: DeckId): void {
   localStorage.removeItem(`last-read-topic-${deckId}`);
 }
 
+/**
+ * Get read topics for a deck from localStorage
+ */
+export function getReadTopics(deckId: DeckId): Set<string> {
+  const stored = localStorage.getItem(`read-topics-${deckId}`);
+  if (stored) {
+    try {
+      const readTopicsArray = JSON.parse(stored) as string[];
+      return new Set(readTopicsArray);
+    } catch (e) {
+      // Ignore parse errors
+    }
+  }
+  return new Set();
+}
+
+/**
+ * Save read topics for a deck to localStorage
+ */
+export function saveReadTopics(deckId: DeckId, readTopics: Set<string>): void {
+  if (readTopics.size > 0) {
+    localStorage.setItem(
+      `read-topics-${deckId}`,
+      JSON.stringify(Array.from(readTopics))
+    );
+  }
+}
+
+/**
+ * Mark a topic as read
+ */
+export function markTopicAsRead(deckId: DeckId, topicId: string): void {
+  const readTopics = getReadTopics(deckId);
+  readTopics.add(topicId);
+  saveReadTopics(deckId, readTopics);
+}
+
+/**
+ * Check if a topic is read
+ */
+export function isTopicRead(deckId: DeckId, topicId: string): boolean {
+  const readTopics = getReadTopics(deckId);
+  return readTopics.has(topicId);
+}
+
+/**
+ * Get the last read topic ID for a deck
+ */
+export function getLastReadTopic(deckId: DeckId): string | null {
+  return localStorage.getItem(`last-read-topic-${deckId}`);
+}
+
+/**
+ * Set the last read topic ID for a deck
+ */
+export function setLastReadTopic(deckId: DeckId, topicId: string): void {
+  localStorage.setItem(`last-read-topic-${deckId}`, topicId);
+}
+

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { DeckId, getAllDecks, setSelectedDeck } from '../utils/deckStorage';
+import { DeckId, getAllDecks, setSelectedDeck, getDeckCardCounts } from '../utils/deckStorage';
 import { loadCards } from '../utils/storage';
 import './components.css';
 
@@ -16,23 +16,9 @@ export function DeckSelection({ onDeckSelect }: DeckSelectionProps) {
 
   // Load card counts for each deck
   useEffect(() => {
-    const loadCounts = () => {
-      const counts: Record<DeckId, number> = {
-        aidd: 0,
-        aiddgen: 0,
-      };
-
-      const decks = getAllDecks();
-      decks.forEach((deck) => {
-        const cards = loadCards(deck.id);
-        counts[deck.id] = cards.length;
-      });
-
-      setCardCounts(counts);
-      setIsLoading(false);
-    };
-
-    loadCounts();
+    const counts = getDeckCardCounts(loadCards);
+    setCardCounts(counts);
+    setIsLoading(false);
   }, []);
 
   const handleDeckSelect = (deckId: DeckId) => {

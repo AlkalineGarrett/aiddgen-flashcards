@@ -2,6 +2,8 @@
  * Utilities for managing selected deck in localStorage
  */
 
+import { Card } from '../types/card';
+
 const SELECTED_DECK_KEY = 'aiddgen-selected-deck';
 
 export type DeckId = 'aidd' | 'aiddgen';
@@ -75,5 +77,30 @@ export function getDeckInfo(deckId: DeckId): DeckInfo {
  */
 export function getAllDecks(): DeckInfo[] {
   return Object.values(DECK_INFO);
+}
+
+/**
+ * Get card count for a deck
+ */
+export function getDeckCardCount(deckId: DeckId, loadCards: (deckId: string) => Card[]): number {
+  const cards = loadCards(deckId);
+  return cards.length;
+}
+
+/**
+ * Get card counts for all decks
+ */
+export function getDeckCardCounts(loadCards: (deckId: string) => Card[]): Record<DeckId, number> {
+  const counts: Record<DeckId, number> = {
+    aidd: 0,
+    aiddgen: 0,
+  };
+
+  const decks = getAllDecks();
+  decks.forEach((deck) => {
+    counts[deck.id] = getDeckCardCount(deck.id, loadCards);
+  });
+
+  return counts;
 }
 

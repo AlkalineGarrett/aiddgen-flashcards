@@ -125,3 +125,13 @@ export function getAvailableTopicIds(deckId: DeckId, existingCards: Card[] = [])
   return content.topics.map((t) => t.id);
 }
 
+/**
+ * Filter cards by topic ID
+ */
+export function filterCardsByTopic(cards: Card[], topicId: string): Card[] {
+  return cards.filter((card) => {
+    const primaryTopic = getCardPrimaryTopic(card);
+    return primaryTopic === topicId;
+  });
+}
+

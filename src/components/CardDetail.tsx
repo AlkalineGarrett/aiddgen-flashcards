@@ -1,6 +1,7 @@
 import { Card } from '../types/card';
 import { getCardStatus, getStatusColor, getStatusLabel } from '../utils/cardStatus';
 import { isCardDue, getDaysUntilDue } from '../utils/fsrs';
+import { formatDate, getDaysSinceCardCreated, getDaysSinceLastReview } from '../utils/cardUtils';
 import './components.css';
 
 interface CardDetailProps {
@@ -15,15 +16,8 @@ export function CardDetail({ card, onBack, onReset }: CardDetailProps) {
   const statusColor = getStatusColor(status);
   const isDue = isCardDue(card, now);
   const daysUntilDue = getDaysUntilDue(card, now);
-
-  const formatDate = (timestamp: number): string => {
-    return new Date(timestamp).toLocaleString();
-  };
-
-  const daysSinceCreated = Math.floor((now - card.createdAt) / (24 * 60 * 60 * 1000));
-  const daysSinceLastReview = card.state.reviewCount > 0
-    ? Math.floor((now - card.state.lastReview) / (24 * 60 * 60 * 1000))
-    : null;
+  const daysSinceCreated = getDaysSinceCardCreated(card, now);
+  const daysSinceLastReview = getDaysSinceLastReview(card, now);
 
   return (
     <div className="card-detail-container">

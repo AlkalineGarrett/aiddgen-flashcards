@@ -1,25 +1,37 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, ReviewQuality } from '../types/card';
 import { useCardStorage } from '../utils/useStorage';
-import { updateCardState } from '../utils/fsrs';
 import {
   buildReviewQueue,
   loadQueueConfig,
   incrementNewCardsStudied,
   getQueueStats,
 } from '../utils/reviewQueue';
+import {
+  filterCardsForQuiz,
+  processCardReview,
+  getNextCardIndex,
+} from '../utils/cardUtils';
+import { createQuizResult } from '../utils/quizUtils';
+import {
+  StudySession,
+  createStudySession,
+  updateSessionTime,
+  incrementCardsReviewed,
+} from '../utils/studySession';
+import {
+  QuizTrackingState,
+  createQuizTrackingState,
+  resetQuizTrackingState,
+  trackQuizAnswer,
+  isQuizComplete,
+} from '../utils/quizTracking';
 import { CardDisplay } from './CardDisplay';
 import { RatingButtons } from './RatingButtons';
 import { StudyStats } from './StudyStats';
 import { StudySettings } from './StudySettings';
 import { DeckId, getDeckInfo } from '../utils/deckStorage';
 import './components.css';
-
-interface StudySession {
-  startTime: number;
-  cardsReviewed: number;
-  timeSpent: number; // in seconds
-}
 
 export interface QuizResult {
   totalCards: number;
@@ -42,42 +54,6 @@ interface StudyProps {
   initialCards?: Card[]; // Optional cards to use instead of loading from storage
 }
 
-/**
- * Extract primary topic from a tag (same logic as topicContent.ts)
- */
-function extractPrimaryTopic(tag: string): string | null {
-  if (tag === 'aidd' || tag === 'aiddgen') {
-    return null;
-  }
-  const parts = tag.split('-');
-  return parts[0] || null;
-}
-
-/**
- * Get the primary topic for a card
- */
-function getCardPrimaryTopic(card: Card): string | null {
-  if (!card.tags || card.tags.length === 0) {
-    return null;
-  }
-  for (const tag of card.tags) {
-    const primaryTopic = extractPrimaryTopic(tag);
-    if (primaryTopic) {
-      return primaryTopic;
-    }
-  }
-  return null;
-}
-
-/**
- * Filter cards by topic ID
- */
-function filterCardsByTopic(cards: Card[], topicId: string): Card[] {
-  return cards.filter((card) => {
-    const primaryTopic = getCardPrimaryTopic(card);
-    return primaryTopic === topicId;
-  });
-}
 
 export function Study({ 
   deckId,
@@ -101,9 +77,7 @@ export function Study({
   const [showSettings, setShowSettings] = useState(false);
   
   // Quiz mode state
-  const [answeredCards, setAnsweredCards] = useState<Set<string>>(new Set());
-  const [correctCardIds, setCorrectCardIds] = useState<Set<string>>(new Set());
-  const [incorrectCardIds, setIncorrectCardIds] = useState<Set<string>>(new Set());
+  const [quizTracking, setQuizTracking] = useState<QuizTrackingState>(createQuizTrackingState());
   
   const deckInfo = useMemo(() => getDeckInfo(deckId), [deckId]);
 
@@ -114,9 +88,7 @@ export function Study({
     setSession(null);
     // Reset quiz state
     if (quizMode) {
-      setAnsweredCards(new Set());
-      setCorrectCardIds(new Set());
-      setIncorrectCardIds(new Set());
+      setQuizTracking(resetQuizTrackingState());
     }
   }, [deckId, quizMode, topicId]);
 
@@ -132,19 +104,16 @@ export function Study({
     return getQueueStats(queue, queueConfig);
   }, [queue, queueConfig]);
 
-  // Filter cards for quiz mode
+  // Filter cards for quiz mode or use queue for normal study
   const dueCards = useMemo(() => {
-    if (quizMode && topicId) {
-      // Quiz mode: filter by topic
-      let filtered = filterCardsByTopic(cards, topicId);
-      
-      // If filtering for incorrect only, further filter by previous incorrect card IDs
-      if (filterIncorrectOnly && previousIncorrectCardIds.length > 0) {
-        const incorrectSet = new Set(previousIncorrectCardIds);
-        filtered = filtered.filter((card) => incorrectSet.has(card.id));
-      }
-      
-      return filtered;
+    if (quizMode) {
+      // Quiz mode: filter by topic and/or incorrect cards
+      return filterCardsForQuiz(
+        cards,
+        topicId,
+        filterIncorrectOnly,
+        previousIncorrectCardIds
+      );
     } else {
       // Normal study mode: use queue
       return queue?.allCards || [];
@@ -154,43 +123,25 @@ export function Study({
   // Initialize session when starting
   useEffect(() => {
     if (!isLoading && dueCards.length > 0 && !session) {
-      setSession({
-        startTime: Date.now(),
-        cardsReviewed: 0,
-        timeSpent: 0,
-      });
+      setSession(createStudySession());
     }
   }, [dueCards.length, isLoading, session]);
 
   // Check if quiz is complete (all cards answered once)
   useEffect(() => {
-    if (quizMode && dueCards.length > 0 && answeredCards.size >= dueCards.length) {
-      const correct = Array.from(correctCardIds);
-      const incorrect = Array.from(incorrectCardIds);
-      const score = dueCards.length > 0 
-        ? Math.round((correct.length / dueCards.length) * 100)
-        : 0;
-
-      if (onQuizComplete) {
-        onQuizComplete({
-          totalCards: dueCards.length,
-          correctCards: correct.length,
-          incorrectCards: incorrect.length,
-          score,
-          correctCardIds: correct,
-          incorrectCardIds: incorrect,
-        });
-      }
+    if (quizMode && isQuizComplete(quizTracking, dueCards.length) && onQuizComplete) {
+      const correct = Array.from(quizTracking.correctCardIds);
+      const incorrect = Array.from(quizTracking.incorrectCardIds);
+      onQuizComplete(createQuizResult(dueCards.length, correct, incorrect));
     }
-  }, [quizMode, answeredCards.size, dueCards.length, correctCardIds, incorrectCardIds, onQuizComplete]);
+  }, [quizMode, quizTracking, dueCards.length, onQuizComplete]);
 
   // Update session time
   useEffect(() => {
     if (!session) return;
 
     const interval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - session.startTime) / 1000);
-      setSession((prev) => prev ? { ...prev, timeSpent: elapsed } : null);
+      setSession((prev) => prev ? updateSessionTime(prev) : null);
     }, 1000);
 
     return () => clearInterval(interval);
@@ -209,57 +160,27 @@ export function Study({
   const handleRating = (quality: ReviewQuality) => {
     if (!currentCard) return;
 
-    // Track if this was a new card
-    const wasNewCard = currentCard.state.reviewCount === 0;
-
-    // Update card state using FSRS (this updates next review date)
-    const result = updateCardState(currentCard, quality);
-    updateCard(result.card);
+    // Process card review (updates state, tracks metadata)
+    const reviewResult = processCardReview(currentCard, quality);
+    updateCard(reviewResult.updatedCard);
 
     // Increment new cards studied if applicable
-    if (wasNewCard) {
+    if (reviewResult.wasNewCard) {
       incrementNewCardsStudied();
     }
 
     // Quiz mode: track answered cards and correct/incorrect
     if (quizMode) {
-      setAnsweredCards((prev) => new Set([...prev, currentCard.id]));
-      // Track correct/incorrect (quality >= 3 is considered correct)
-      if (quality >= 3) {
-        setCorrectCardIds((prev) => new Set([...prev, currentCard.id]));
-      } else {
-        setIncorrectCardIds((prev) => new Set([...prev, currentCard.id]));
-      }
+      setQuizTracking((prev) => trackQuizAnswer(prev, currentCard.id, reviewResult.isCorrect));
     }
 
     // Update session stats
-    setSession((prev) =>
-      prev
-        ? {
-            ...prev,
-            cardsReviewed: prev.cardsReviewed + 1,
-          }
-        : null
-    );
+    setSession((prev) => prev ? incrementCardsReviewed(prev) : null);
 
     // Move to next card
     setShowAnswer(false);
-    if (quizMode) {
-      // Quiz mode: single chance, move to next card or complete
-      if (currentCardIndex < dueCards.length - 1) {
-        setCurrentCardIndex(currentCardIndex + 1);
-      }
-      // If this was the last card, the useEffect above will trigger onQuizComplete
-    } else {
-      // Normal study mode: loop back to start if finished
-      if (currentCardIndex < dueCards.length - 1) {
-        setCurrentCardIndex(currentCardIndex + 1);
-      } else {
-        // Finished all cards in current queue, reset to start
-        // The queue will recalculate on next render
-        setCurrentCardIndex(0);
-      }
-    }
+    const nextIndex = getNextCardIndex(currentCardIndex, dueCards.length, quizMode);
+    setCurrentCardIndex(nextIndex);
   };
 
   if (isLoading) {

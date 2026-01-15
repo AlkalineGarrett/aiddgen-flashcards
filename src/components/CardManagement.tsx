@@ -1,10 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Card } from '../types/card';
 import { useCardStorage } from '../utils/useStorage';
-import { createInitialCardState } from '../utils/fsrs';
 import { filterCardsByStatus, filterCardsByTag, searchCards } from '../utils/cardStatus';
 import { getAvailableTags } from '../utils/flashcardGenerator';
 import { calculateStatistics } from '../utils/statistics';
+import { resetCardState } from '../utils/cardUtils';
 import { CardList } from './CardList';
 import { CardDetail } from './CardDetail';
 import { Statistics } from './Statistics';
@@ -19,7 +18,7 @@ interface CardManagementProps {
 }
 
 export function CardManagement({ deckId }: CardManagementProps) {
-  const { cards, updateCard, removeCard, isLoading } = useCardStorage(deckId);
+  const { cards, updateCard, isLoading } = useCardStorage(deckId);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [view, setView] = useState<View>('list');
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'learning' | 'review' | 'mastered'>('all');
@@ -62,10 +61,7 @@ export function CardManagement({ deckId }: CardManagementProps) {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
 
-    const resetCard: Card = {
-      ...card,
-      state: createInitialCardState(),
-    };
+    const resetCard = resetCardState(card);
     updateCard(resetCard);
   };
 
